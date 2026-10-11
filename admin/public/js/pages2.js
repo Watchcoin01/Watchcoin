@@ -8,7 +8,8 @@
     'settings.update': 'Changed settings', 'broadcast.send': 'Sent an announcement', 'owner.claim': 'Became the owner', 'user.role': 'Changed a staff role',
     'user.logout_all': 'Signed a user out everywhere', 'user.reset_2fa': 'Reset two-step login', 'payment.recheck': 'Rechecked a payment', 'payment.approve': 'Approved a payment',
     'auth.login': 'Signed in', 'auth.login_backup_code': 'Signed in with a backup code', 'auth.2fa_on': 'Turned on two-step login', 'auth.2fa_off': 'Turned off two-step login',
-    'auth.password_change': 'Changed their password', 'auth.password_reset': 'Reset their password', 'auth.logout_all': 'Signed out everywhere', 'auth.backup_codes_new': 'Made new backup codes' };
+    'auth.password_change': 'Changed their password', 'auth.password_reset': 'Reset their password', 'auth.logout_all': 'Signed out everywhere', 'auth.backup_codes_new': 'Made new backup codes',
+    'wheel.video': 'Uploaded a wheel animal video', 'wheel.video_remove': 'Removed a wheel animal video' };
   const head = (title, tools = '') => `<div class="head"><h1>${esc(title)}</h1><div class="tools">${tools}</div></div>`;
   const tabs = (items, cur, attr) => `<div class="tabs" role="group">${items.map(([k, l]) => `<button data-${attr}="${k}" aria-pressed="${String(k) === String(cur)}">${esc(l)}</button>`).join('')}</div>`;
   const guard = (fn) => async (...a) => { try { await fn(...a); } catch (e) { toast(e.message, true); } };

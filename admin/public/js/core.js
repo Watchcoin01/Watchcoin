@@ -39,6 +39,22 @@
     return j;
   }
 
+  /* ---- file upload with progress (videos for the prize wheel) ---- */
+  function upload(path, file, onProgress) {
+    return new Promise((resolve, reject) => {
+      const x = new XMLHttpRequest();
+      x.open('PUT', cfg.apiUrl + path);
+      if (token) x.setRequestHeader('authorization', 'Bearer ' + token);
+      x.setRequestHeader('content-type', file.type);
+      x.upload.onprogress = (e) => { if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total); };
+      x.onload = () => { let j = {}; try { j = JSON.parse(x.responseText); } catch (e) { /* no body */ }
+        if (x.status === 401) { setToken(null); authLost(); }
+        x.status < 300 ? resolve(j) : reject(new Error(j.error || (x.status === 413 ? 'The file is too large' : `Upload failed (${x.status})`))); };
+      x.onerror = () => reject(new Error('Upload failed. Check your connection.'));
+      x.send(file);
+    });
+  }
+
   /* ---- toast ---- */
   function toast(msg, bad) {
     const t = $('#toast'); t.textContent = msg; t.className = 'on' + (bad ? ' bad' : '');
@@ -93,7 +109,7 @@
 
   window.WC = {
     cfg, $, esc, fmt, usdt, when, api, toast, modal, closeModal, confirmBox, bars, download, state: {}, pages: {},
-    setToken, hasToken: () => !!token, onAuthLost: (f) => { authLost = f; }, on2faRequired: (f) => { need2fa = f; },
+    upload, setToken, hasToken: () => !!token, onAuthLost: (f) => { authLost = f; }, on2faRequired: (f) => { need2fa = f; },
     me: null, can, RANK, ROLE_LABEL, roleChip, country, LANG_NAME,
   };
 })();

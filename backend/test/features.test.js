@@ -304,3 +304,40 @@ test('sign-up saves country and language; translations are complete', async () =
   const missing = msgs.filter((m) => !(m in strings.en.srv) && !Object.keys(strings.en.srv).some((k) => k.includes('{') && new RegExp('^' + k.replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\\?\{\w+\\?\}/g, '.+') + '$').test(m.replace(/\$\{[^}]+\}/g, 'X'))));
   assert.deepEqual(missing, []);
 });
+
+test('wheel animal videos: upload, stream, replace, remove, roles', async () => {
+  const fakeMp4 = (n) => Buffer.concat([Buffer.from([0, 0, 0, 0x18]), Buffer.from('ftypisom'), Buffer.alloc(n, 7)]);
+  const put = (tok, animal, body, type = 'video/mp4') => fetch(`${base}/admin/wheel/${animal}/video`, { method: 'PUT', headers: { authorization: `Bearer ${tok}`, 'content-type': type }, body });
+  const user = (await login('ama@test.com', 'secret2')).body.token;
+  assert.equal((await put(user, 'dragon', fakeMp4(100))).status, 403);
+  assert.equal((await put(owner.token, 'unicorn', fakeMp4(100))).status, 400);
+  assert.equal((await put(owner.token, 'dragon', Buffer.from('not a video at all'))).status, 400);
+  assert.equal((await put(owner.token, 'dragon', fakeMp4(100), 'image/png')).status, 415);
+
+  let r = await put(owner.token, 'dragon', fakeMp4(5000));
+  assert.equal(r.status, 200);
+  const first = (await r.json()).url;
+  assert.match(first, /^\/media\/dragon-[a-f0-9]+\.mp4$/);
+  const origin = base.replace(/\/api$/, '');
+  let v = await fetch(origin + first);
+  assert.equal(v.status, 200);
+  assert.equal(v.headers.get('cross-origin-resource-policy'), 'cross-origin');
+  assert.equal((await v.arrayBuffer()).byteLength, 5012);
+  v = await fetch(origin + first, { headers: { range: 'bytes=0-99' } }); // phones stream video in pieces
+  assert.equal(v.status, 206);
+
+  const rw = (await call('GET', '/rewards', { token: user })).body.spin;
+  assert.equal(rw.media.dragon, first);
+  assert.equal(rw.media.lion, undefined); // no clip: the app uses the built-in animation
+
+  r = await put(owner.token, 'dragon', fakeMp4(800)); // replacing gives a new address, the old file is deleted
+  const second = (await r.json()).url;
+  assert.notEqual(second, first);
+  await new Promise((ok) => setTimeout(ok, 50));
+  assert.equal((await fetch(origin + first)).status, 404);
+  assert.equal((await call('GET', '/admin/wheel', { token: owner.token })).body.media.dragon.size, 812);
+
+  assert.equal((await call('DELETE', '/admin/wheel/dragon/video', { token: owner.token })).status, 200);
+  assert.equal((await call('DELETE', '/admin/wheel/dragon/video', { token: owner.token })).status, 404);
+  assert.equal((await call('GET', '/rewards', { token: user })).body.spin.media.dragon, undefined);
+});

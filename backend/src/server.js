@@ -26,6 +26,11 @@ function createApp() {
   const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 40, standardHeaders: true, legacyHeaders: false, skip,
     message: { error: 'Too many attempts. Please try again later.' } });
 
+  // Wheel animal videos. Cross-origin is allowed so the admin dashboard (another address) can preview them.
+  // Each upload gets a new file name, so the files can be cached for a long time. Range requests let phones stream them.
+  app.use('/media', express.static(require('./media').DIR, { maxAge: '30d', immutable: true, index: false, dotfiles: 'deny',
+    setHeaders: (res) => res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin') }));
+
   app.get('/api/health', (req, res) => res.json({ ok: true, time: Date.now() }));
   app.get('/api/public/stats', (req, res) => res.json(require('./routes/user').publicStats()));
 

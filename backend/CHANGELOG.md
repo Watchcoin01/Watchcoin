@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.0
+
+- **Real video clips for the wheel animals.** The dashboard has a new **Wheel animals** page (admin role) where you upload a
+  short MP4 or WebM for each animal, for example a cinematic fire-breathing dragon made with an AI video tool. Each animal has
+  a ready-made prompt to copy. When someone wins, the app plays that clip full screen, with sound where the phone allows,
+  plus the screen shake, vibration, coin burst and prize counter. Animals without a clip keep the built-in animation, and so
+  does any clip that can't load within 3.5 seconds.
+- Clips are stored next to the database (on the Railway volume) under `media/`, up to 20 MB each, and served from `/media/`
+  with streaming and long caching. The app starts downloading the winning clip while the wheel is still spinning.
+- New routes: `GET /admin/wheel`, `PUT /admin/wheel/:animal/video` (body is the video file), `DELETE /admin/wheel/:animal/video`.
+
 ## 1.3.0
 
 - **Animal prize wheel.** Each segment has an animal: goat 20, wolf 50, crocodile 100, bull 50, lion 200, eagle 100,

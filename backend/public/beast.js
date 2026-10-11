@@ -19,6 +19,10 @@
     background:radial-gradient(ellipse at 50% 40%,rgba(60,20,0,.55),rgba(5,3,0,.92) 70%);opacity:0;transition:opacity .25s;touch-action:none}
   #beast.on{opacity:1}
   #beast canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  #beast video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;opacity:0;transition:opacity .3s}
+  #beast video.on{opacity:1}
+  #beast.vid{background:#000}
+  #beast.vid .txt{bottom:9%}
   #beast .flash{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 55%,rgba(255,220,120,.95),rgba(255,90,0,.6) 45%,rgba(120,0,0,0) 75%)}
   #beast .flash.go{animation:bflash .9s ease-out}
   @keyframes bflash{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
@@ -67,7 +71,91 @@
     return c;
   })();
 
+  // One reusable video element. Phones only allow sound if a video element was started by a tap, so prime() is
+  // called inside the Spin tap; the same element then plays the winning clip with sound a few seconds later.
+  let vid = null;
+  function videoEl() {
+    if (!vid) { vid = document.createElement('video'); vid.playsInline = true; vid.setAttribute('playsinline', ''); vid.setAttribute('webkit-playsinline', ''); vid.preload = 'auto'; }
+    return vid;
+  }
+  function prime(anyUrl) {
+    if (!anyUrl || reduced()) return;
+    const v = videoEl();
+    try { v.muted = false; v.volume = 0; v.src = anyUrl; const p = v.play(); if (p) p.then(() => v.pause()).catch(() => {}); } catch (e) { /* ignore */ }
+  }
+  // Start downloading the clip while the wheel is still spinning.
+  function preload(url) { if (!url || reduced()) return; const v = videoEl(); v.pause(); v.src = url; v.load(); }
+
+  // Full-screen clip (for example a fire-breathing dragon from an AI video tool), with shake, coins and counter on top.
+  // Falls back to the drawn show if the clip can't play within a few seconds.
+  function playVideo(opts) {
+    const a = ANIMALS[opts.animal] || ANIMALS.goat, P = a.power, dragon = opts.animal === 'dragon';
+    return new Promise((done) => {
+      const v = videoEl();
+      if (!v.src || !v.src.endsWith(opts.video)) { v.src = opts.video; v.load(); }
+      const root = document.createElement('div'); root.id = 'beast'; root.className = 'vid'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', `${opts.name} +${opts.prize} WTC`);
+      root.innerHTML = `<canvas></canvas><div class="flash"></div><div class="txt"><div class="ttl"></div><div class="amt">+0<small>WTC</small></div><div class="hint"></div></div>`;
+      root.insertBefore(v, root.firstChild); v.classList.remove('on');
+      document.body.appendChild(root);
+      root.querySelector('.ttl').textContent = opts.title || opts.name;
+      root.querySelector('.hint').textContent = opts.hint || '';
+      const cv = root.querySelector('canvas'), g = cv.getContext('2d'), txt = root.querySelector('.txt'), amt = root.querySelector('.amt'), flash = root.querySelector('.flash');
+      const dpr = Math.min(2, window.devicePixelRatio || 1); let W = innerWidth, H = innerHeight;
+      cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      requestAnimationFrame(() => root.classList.add('on'));
+      const shakeEls = [root, document.querySelector('.wrap')].filter(Boolean);
+      const shake = (on) => shakeEls.forEach((el) => { if (on) { el.style.setProperty('--q', (4 + 12 * P) + 'px'); el.classList.add('quake'); } else el.classList.remove('quake'); });
+      let closed = false, started = false, coinsOut = false, raf = 0; const coins = [], timers = [];
+      const close = () => {
+        if (closed) return; closed = true; timers.forEach(clearTimeout); shake(false); cancelAnimationFrame(raf);
+        try { v.pause(); } catch (e) { /* ignore */ }
+        root.classList.remove('on'); setTimeout(() => { root.remove(); done(true); }, 260);
+      };
+      const fallback = () => { if (started || closed) return; closed = true; timers.forEach(clearTimeout); root.remove(); play({ ...opts, video: null }).then(done); };
+      function burst() {
+        if (coinsOut || closed) return; coinsOut = true;
+        for (let i = 0, n = Math.round(10 + 45 * P); i < n; i++) coins.push({ x: W / 2 + (Math.random() - 0.5) * 80, y: H * 0.7, vx: (Math.random() - 0.5) * (8 + 10 * P), vy: -(10 + Math.random() * (10 + 8 * P)), rot: Math.random() * 6, spin: 0.15 + Math.random() * 0.25, s: 0.6 + Math.random() * 0.6 });
+        txt.classList.add('on');
+        const st = performance.now(), dur = 700 + 500 * P;
+        const step = (now) => { const k = Math.min(1, (now - st) / dur); amt.firstChild.textContent = '+' + Math.round(opts.prize * (1 - Math.pow(1 - k, 3))); if (k < 1 && !closed) requestAnimationFrame(step); };
+        requestAnimationFrame(step);
+      }
+      function frame() {
+        if (closed) return;
+        g.clearRect(0, 0, W, H);
+        for (let i = coins.length - 1; i >= 0; i--) {
+          const c = coins[i]; c.vy += 0.45; c.x += c.vx; c.y += c.vy; c.rot += c.spin;
+          if (c.y > H + 40) { coins.splice(i, 1); continue; }
+          const w = 44 * c.s * Math.abs(Math.cos(c.rot)) + 2, h = 44 * c.s; g.drawImage(COIN, c.x - w / 2, c.y - h / 2, w, h);
+        }
+        raf = requestAnimationFrame(frame);
+      }
+      function start() {
+        if (started || closed) return; started = true; v.classList.add('on');
+        // Timing follows the clip: the fire is usually in the middle, the coins come near the end.
+        const d = Math.min(12, isFinite(v.duration) && v.duration > 0 ? v.duration : 6) * 1000;
+        timers.push(setTimeout(() => { shake(true); if (dragon || P >= 0.8) flash.classList.add('go');
+          try { navigator.vibrate && navigator.vibrate(dragon ? [120, 40, 160, 40, 260, 60, 320] : [60, 30, 90 + 120 * P]); } catch (e) { /* not supported */ } }, d * 0.3));
+        timers.push(setTimeout(() => shake(false), d * 0.3 + 900 + 900 * P));
+        timers.push(setTimeout(burst, d * 0.72));
+        timers.push(setTimeout(close, d + 2200));
+        raf = requestAnimationFrame(frame);
+      }
+      const go = () => {
+        v.currentTime = 0; v.volume = 1;
+        const p = v.play();
+        if (p && p.catch) p.then(start).catch(() => { v.muted = true; v.play().then(start).catch(fallback); }); // no sound allowed: play muted
+        else start();
+      };
+      if (v.readyState >= 3) go(); else { v.addEventListener('canplay', go, { once: true }); v.addEventListener('error', fallback, { once: true }); }
+      timers.push(setTimeout(fallback, 3500)); // slow connection: don't keep people waiting
+      v.onended = () => { burst(); };
+      root.addEventListener('click', () => { if (coinsOut) close(); else if (started) { burst(); timers.push(setTimeout(close, 1800)); } });
+    });
+  }
+
   function play(opts) {
+    if (opts.video && !reduced()) return playVideo(opts);
     const a = ANIMALS[opts.animal] || ANIMALS.goat, P = a.power, dragon = opts.animal === 'dragon', calm = reduced();
     return new Promise((done) => {
       const root = document.createElement('div'); root.id = 'beast'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', `${opts.name} +${opts.prize} WTC`);
@@ -180,5 +268,5 @@
     });
   }
 
-  window.WCBeast = { play, ANIMALS };
+  window.WCBeast = { play, prime, preload, ANIMALS };
 })();

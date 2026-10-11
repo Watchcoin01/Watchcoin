@@ -171,3 +171,68 @@
     },
   };
 })();
+
+/* ================= Wheel animals: video clips ================= */
+(function () {
+  const { $, esc, fmt, api, toast, confirmBox, upload, cfg, pages } = window.WC;
+  const head = (title) => `<div class="head"><h1>${esc(title)}</h1></div>`;
+  const guard = (fn) => async (...a) => { try { await fn(...a); } catch (e) { toast(e.message, true); } };
+  const INFO = {
+    dragon: ['🐉', 'Dragon', 'a colossal ancient dragon with crimson and gold scales, glowing amber eyes, a huge horned head and vast leathery wings spread wide'],
+    lion: ['🦁', 'Lion', 'a majestic male lion with a thick golden mane and intense amber eyes'],
+    eagle: ['🦅', 'Eagle', 'a fierce bald eagle with its huge wings spread wide and razor-sharp talons'],
+    croc: ['🐊', 'Crocodile', 'a huge Nile crocodile rising out of dark water with its jaws wide open'],
+    wolf: ['🐺', 'Wolf', 'a powerful grey wolf with thick fur and glowing blue eyes'],
+    bull: ['🐂', 'Bull', 'a massive black bull with long sharp horns, snorting and stamping'],
+    goat: ['🐐', 'Goat', 'a rugged mountain goat with big curled horns standing on a rock'],
+  };
+  const prompt = (animal) => {
+    const d = INFO[animal][2], big = animal === 'dragon';
+    return `Vertical 9:16 video, ${big ? '6' : '5'} seconds, photorealistic cinematic CGI, pure black background, dramatic warm rim lighting, 4K. ` +
+      `${d[0].toUpperCase() + d.slice(1)} faces the camera. It rears its head back, then lunges toward the camera and breathes a powerful jet of fire ` +
+      `with thick billowing smoke and glowing embers straight at the viewer. The camera shakes from the blast. ` +
+      (big ? 'Epic scale: the fire fills the whole frame and the ground trembles. ' : '') +
+      `It ends staring proudly at the camera as the flames fade to embers. Deep ${big ? 'thunderous roar' : 'roar'} sound. No text, no logos, no people.`;
+  };
+  const mb = (b) => (b / 1048576).toFixed(1) + ' MB';
+
+  pages.wheel = {
+    title: 'Wheel animals',
+    async render(c) {
+      const d = await api('GET', '/admin/wheel'), origin = cfg.apiUrl.replace(/\/api$/, '');
+      const seen = new Set(), rows = d.segments.filter((s) => !seen.has(s.animal) && seen.add(s.animal)).sort((a, b) => b.prize - a.prize);
+      c.innerHTML = head('Wheel animals') +
+        `<div class="card note-card"><strong>Make the wheel look like the AI videos people love.</strong> Upload a short video for each animal. When someone wins, the app plays that animal's video full screen, with the screen shake, coin burst and prize on top. Animals without a video use the built-in animation.</div>
+        <div class="card"><h3>How to make the videos</h3><ol class="steps">
+          <li>Open an AI video tool, such as Google Veo, Kling, Runway, Sora or Pika.</li>
+          <li>Copy the prompt for an animal below and generate the video. Pick the best take.</li>
+          <li>Download it as <strong>MP4</strong>, vertical (9:16), 4 to 8 seconds. Keep it under ${mb(d.maxBytes)}; under 4 MB loads fast on mobile data.</li>
+          <li>Upload it here. Use only videos you made or have the rights to use.</li></ol>
+          <p class="small muted">A black background blends best with the app. If the tool adds sound, the roar plays too (on phones that allow it).</p></div>
+        <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">${rows.map((s) => { const m = d.media[s.animal], [e, name] = INFO[s.animal] || ['', s.animal];
+          return `<div class="card"><div class="tools" style="justify-content:space-between"><h3 style="margin:0">${e} ${esc(name)}</h3><span class="chip ${s.animal === 'dragon' ? 'gold' : ''}">${fmt(s.prize)} WTC</span></div>
+            ${m ? `<video src="${esc(origin + m.url)}" controls playsinline preload="metadata" style="width:100%;aspect-ratio:9/16;max-height:340px;background:#000;border-radius:12px;margin:10px 0"></video><div class="small muted">${mb(m.size)} · uploaded ${esc(new Date(m.uploadedAt).toLocaleDateString())}</div>`
+              : `<div class="empty" style="margin:10px 0">No video yet. The built-in animation is used.</div>`}
+            <div class="tools" style="margin-top:10px"><label class="btn sm" style="cursor:pointer">${m ? 'Replace video' : 'Upload video'}<input type="file" accept="video/mp4,video/webm" data-up="${s.animal}" hidden></label>
+              ${m ? `<button class="btn ghost sm" data-rm="${s.animal}">Remove</button>` : ''}<button class="btn ghost sm" data-pr="${s.animal}">Copy AI prompt</button></div>
+            <div class="small muted" id="pg-${s.animal}" style="margin-top:6px"></div></div>`; }).join('')}</div>`;
+
+      c.onchange = guard(async (e) => {
+        const inp = e.target.closest('[data-up]'); if (!inp || !inp.files[0]) return;
+        const f = inp.files[0], animal = inp.dataset.up, pg = $('#pg-' + animal);
+        if (!['video/mp4', 'video/webm'].includes(f.type)) throw new Error('Choose an MP4 or WebM video');
+        if (f.size > d.maxBytes) throw new Error(`This video is ${mb(f.size)}. The limit is ${mb(d.maxBytes)}. Export it shorter or at 720p.`);
+        await upload(`/admin/wheel/${animal}/video`, f, (k) => { pg.textContent = `Uploading… ${Math.round(k * 100)}%`; });
+        toast(`${INFO[animal][1]} video saved. It shows the next time someone wins it.`); pages.wheel.render(c);
+      });
+      c.onclick = guard(async (e) => {
+        const pr = e.target.closest('[data-pr]');
+        if (pr) { const text = prompt(pr.dataset.pr); try { await navigator.clipboard.writeText(text); toast('Prompt copied'); } catch (er) { window.prompt('Copy this prompt', text); } return; }
+        const rm = e.target.closest('[data-rm]');
+        if (rm && await confirmBox(`Remove the ${INFO[rm.dataset.rm][1]} video?`, 'The built-in animation is used for this animal again.', 'Remove', true)) {
+          await api('DELETE', `/admin/wheel/${rm.dataset.rm}/video`); toast('Video removed'); pages.wheel.render(c);
+        }
+      });
+    },
+  };
+})();

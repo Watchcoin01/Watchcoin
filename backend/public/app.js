@@ -260,14 +260,18 @@ async function finish(answer) {
 }
 async function doSpin() {
   if (spinning) return;
+  const media = (S.rw && S.rw.spin && S.rw.spin.media) || {};
+  if (window.WCBeast) window.WCBeast.prime(Object.values(media)[0]); // must happen inside the tap, so the clip may play with sound
   try {
     const r = await api('POST', '/rewards/spin'), SG = 360 / r.prizes.length, l = $('wl');
+    const won = r.animal || (r.animals || [])[r.index], clip = media[won] ? API.replace(/\/api$/, '') + media[won] : null;
+    if (clip && window.WCBeast) window.WCBeast.preload(clip); // download while the wheel spins
     spinning = 1; document.querySelector('[data-a=spin]').disabled = true;
     l.style.transition = 'none'; l.style.transform = 'rotate(0deg)'; void l.offsetWidth;
     l.style.transition = 'transform 4s cubic-bezier(.12,.7,.1,1)'; l.style.transform = `rotate(${1800 - (r.index * SG + SG / 2)}deg)`;
     setTimeout(async () => {
       const animal = r.animal || (r.animals || [])[r.index] || 'goat';
-      if (window.WCBeast) await window.WCBeast.play({ animal, prize: r.prize, name: t('an.' + animal), title: animal === 'dragon' ? t('spin.jackpot') : t('an.' + animal), hint: t('spin.tap') });
+      if (window.WCBeast) await window.WCBeast.play({ animal, video: clip, prize: r.prize, name: t('an.' + animal), title: animal === 'dragon' ? t('spin.jackpot') : t('an.' + animal), hint: t('spin.tap') });
       else confetti();
       spinning = 0; pop = 1; await go(); toast(t('spin.toast', { n: r.prize }));
     }, 4200);

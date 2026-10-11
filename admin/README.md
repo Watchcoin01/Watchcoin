@@ -21,6 +21,7 @@ headers.
 | Online payments | Paystack payments (Mobile Money and cards): paid, not finished, failed, and wrong amounts waiting for a check |
 | Support | Read and resolve user problem reports |
 | Announcements | Send a notification to everyone, premium members, or free users |
+| Wheel animals | Upload a video for each prize-wheel animal (for example a fire-breathing dragon made with an AI video tool), with a ready-made prompt for each |
 | Staff | Who has which role and whether their two-step login is on. The owner adds staff, changes roles, and resets a lost phone |
 | Audit log | Every change and every staff sign-in, with who did it and when |
 | Settings | Payment details, launch date, token price, the Paystack exchange rate, and a users CSV download |

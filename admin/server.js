@@ -16,7 +16,7 @@ const TYPES = {
   '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8', '.ico': 'image/x-icon', '.png': 'image/png',
 };
 const SECURITY = {
-  'Content-Security-Policy': `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://i.ytimg.com; connect-src 'self' ${apiOrigin}; frame-ancestors 'none'; base-uri 'none'; form-action 'self'`,
+  'Content-Security-Policy': `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://i.ytimg.com; media-src 'self' ${apiOrigin}; connect-src 'self' ${apiOrigin}; frame-ancestors 'none'; base-uri 'none'; form-action 'self'`,
   'X-Frame-Options': 'DENY',
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'no-referrer',

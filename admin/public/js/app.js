@@ -4,7 +4,7 @@
   // [route, label, lowest role that sees it]
   const NAV = [['overview', 'Overview', 'support'], ['economics', 'Economics', 'admin'], ['performance', 'Task performance', 'support'],
     ['tasks', 'Videos & tasks', 'admin'], ['users', 'Users', 'support'], ['fraud', 'Fraud checks', 'admin'], ['upgrades', 'Upgrades', 'support'],
-    ['payments', 'Online payments', 'support'], ['support', 'Support', 'support'], ['announce', 'Announcements', 'admin'], ['staff', 'Staff', 'admin'],
+    ['payments', 'Online payments', 'support'], ['support', 'Support', 'support'], ['announce', 'Announcements', 'admin'], ['wheel', 'Wheel animals', 'admin'], ['staff', 'Staff', 'admin'],
     ['audit', 'Audit log', 'admin'], ['settings', 'Settings', 'admin'], ['security', 'My security', 'support']];
   const PAGE_ROLE = Object.fromEntries(NAV.map(([k, , r]) => [k, r]));
   PAGE_ROLE.user = 'support';

@@ -444,4 +444,36 @@ router.post('/payments/:id/approve', ADMIN, (req, res) => {
   res.json({ ok: true });
 });
 
+// ---------- prize-wheel animal videos ----------
+const media = require('../media');
+const animalParam = (req) => parse(z.enum(media.ANIMALS), req.params.animal);
+
+router.get('/wheel', SUPPORT, (req, res) => {
+  const all = media.list();
+  res.json({
+    segments: R.SPIN_PRIZES.map((prize, i) => ({ prize, animal: R.SPIN_ANIMALS[i] })),
+    media: Object.fromEntries(Object.entries(all).map(([a, m]) => [a, { url: media.urlFor(m), size: m.size, type: m.type, uploadedAt: m.uploadedAt }])),
+    maxBytes: media.MAX_BYTES,
+  });
+});
+
+// Body is the video file itself (Content-Type video/mp4 or video/webm).
+router.put('/wheel/:animal/video', ADMIN, express.raw({ type: Object.keys(media.TYPES), limit: media.MAX_BYTES }), (req, res) => {
+  const animal = animalParam(req);
+  const type = String(req.headers['content-type'] || '').split(';')[0].trim();
+  if (!media.TYPES[type]) throw new HttpError(415, 'Upload an MP4 or WebM video');
+  if (!Buffer.isBuffer(req.body) || !req.body.length) throw new HttpError(400, 'The file is empty');
+  if (!media.looksLike(type, req.body)) throw new HttpError(400, 'This file is not a valid MP4 or WebM video');
+  const m = media.save(animal, type, req.body);
+  audit(req, 'wheel.video', 'settings', null, `${animal}: ${Math.round(m.size / 1024)} KB`);
+  res.json({ animal, url: media.urlFor(m), size: m.size });
+});
+
+router.delete('/wheel/:animal/video', ADMIN, (req, res) => {
+  const animal = animalParam(req);
+  if (!media.remove(animal)) throw new HttpError(404, 'No video for this animal');
+  audit(req, 'wheel.video_remove', 'settings', null, animal);
+  res.json({ ok: true });
+});
+
 module.exports = router;
