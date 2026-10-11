@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.2.0
+
+### New
+- **The whole user app is translated** into English, French, Spanish, Chinese, Swahili, Hausa and Twi: every screen, dialog,
+  button, error and notification. Switching language changes everything at once and is saved on the account.
+- **Language from the visitor's country.** On a first visit the app works out the country from the device's time zone
+  (for example Africa/Lome means Togo) and opens in that country's official language. No location permission or outside
+  service is used. Countries whose language isn't supported get English.
+- **Country at sign-up.** The sign-up form has a country list (pre-filled with the detected country). Picking a country switches
+  the app to its language. The country is saved on the account, can be changed in the Me tab, and shows in the admin dashboard
+  and the users CSV.
+- Translations live in `backend/i18n/*.json`. After editing them, run `npm run i18n` to rebuild `public/i18n.js`.
+  The build and the tests fail if a language misses a text or changes a {placeholder}.
+
+### Changed
+- **Spin wheel prizes are 10x:** 20, 50, 100, 50, 200, 100, 500 WTC.
+- **The wheel unlocks only after all of today's tasks are finished** (completed, or missed with a wrong answer).
+  It shows how many are left, e.g. "3 of 5 done".
+- The wheel pointer is drawn instead of using a text character, so it looks the same on every phone.
+
 ## 1.1.0
 
 ### New

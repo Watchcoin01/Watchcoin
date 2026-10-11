@@ -3,6 +3,9 @@ const cfg = require('./config');
 
 const MS_DAY = 86400000;
 
+// Languages the app is translated into. Keep in sync with public/i18n.js.
+const LANGS = ['en', 'fr', 'es', 'zh', 'sw', 'ha', 'tw'];
+
 const PLANS = [
   { id: 0, name: 'Free', priceUsdt: 0, tasksPerDay: 5 },
   { id: 1, name: 'Plus', priceUsdt: 5, tasksPerDay: 10 },
@@ -18,7 +21,7 @@ const LEVELS = [
   { name: 'Platinum', min: 10000, boost: 0.15 },
 ];
 
-const SPIN_PRIZES = [2, 5, 10, 5, 20, 10, 50];
+const SPIN_PRIZES = [20, 50, 100, 50, 200, 100, 500];
 const BONUS = { allDone: 25, referral: 50, streakBase: 5, streakCapDays: 7 };
 const MAX_TASKS_PER_HOUR = 5;
 const MIN_QUIZ_READ_MS = 1500; // answering a question faster than this after the timer ends is treated as a bot
@@ -68,6 +71,6 @@ const rewardFor = (task, user) =>
 const toUsdt = (wtc, price) => Number((wtc * price).toFixed(6));
 
 module.exports = {
-  MS_DAY, PLANS, PLAN_DAYS, LEVELS, SPIN_PRIZES, BONUS, MAX_TASKS_PER_HOUR, MIN_QUIZ_READ_MS,
+  LANGS, MS_DAY, PLANS, PLAN_DAYS, LEVELS, SPIN_PRIZES, BONUS, MAX_TASKS_PER_HOUR, MIN_QUIZ_READ_MS,
   CHALLENGES, ACHIEVEMENTS, dayKey, dayStart, weekStart, levelFor, activePlan, rewardFor, toUsdt,
 };

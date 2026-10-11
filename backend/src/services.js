@@ -24,7 +24,7 @@ function publicUser(u) {
   const plan = R.activePlan(u);
   const unread = db.prepare('SELECT COUNT(*) c FROM notifications WHERE user_id = ? AND read = 0').get(u.id).c;
   return {
-    id: u.id, email: u.email, name: u.name, role: u.role, avatar: u.avatar, lang: u.lang,
+    id: u.id, email: u.email, name: u.name, role: u.role, avatar: u.avatar, lang: u.lang, country: u.country || null,
     onboarded: !!u.onboarded, emailVerified: !!u.email_verified, refCode: u.ref_code,
     balance: u.balance, balanceUsdt: R.toUsdt(u.balance, price), lifetime: u.lifetime,
     level: { name: lvl.name, boost: lvl.boost, next: lvl.next ? { name: lvl.next.name, remaining: lvl.next.min - u.lifetime } : null },

@@ -1,6 +1,6 @@
 /* Extra pages: user detail, audit log, announcements, task performance, fraud checks, economics. */
 (function () {
-  const { $, esc, fmt, usdt, when, api, toast, confirmBox, bars, state, pages, can, roleChip, ROLE_LABEL } = window.WC;
+  const { $, esc, fmt, usdt, when, api, toast, confirmBox, bars, state, pages, can, roleChip, ROLE_LABEL, country, LANG_NAME } = window.WC;
   const TYPE = { watch: 'Watch', like: 'Like', subscribe: 'Subscribe', poll: 'Poll' };
   const KIND = { task: 'Task', streak: 'Streak bonus', spin: 'Spin', bonus: 'Bonus', referral: 'Referral', challenge: 'Challenge', adjust: 'Admin adjustment' };
   const ACTION = { 'task.create': 'Added a task', 'task.update': 'Edited a task', 'task.hide': 'Hid a task', 'user.ban': 'Banned a user', 'user.unban': 'Unbanned a user',
@@ -28,6 +28,7 @@
         `<div class="card"><div class="kv">
           ${kv('Email', esc(u.email) + (u.emailVerified ? '' : ' <span class="chip">unverified</span>'))}
           ${kv('Role', can('owner') && u.role !== 'owner' && !u.banned ? `<select id="uRole" style="width:auto" aria-label="Role">${['user', 'support', 'admin'].map((r) => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${ROLE_LABEL[r]}</option>`).join('')}</select>` : (roleChip(u.role) || 'User'))}
+          ${kv('Country', u.country ? esc(country(u.country)) : 'Not set')}${kv('App language', esc(LANG_NAME[u.lang] || u.lang || 'English'))}
           ${kv('Two-step login', u.twoFactor ? '<span class="chip ok">On</span>' : 'Off')}
           ${kv('Status', (u.banned ? '<span class="chip bad">Banned</span>' : '<span class="chip ok">Active</span>'))}
           ${kv('Plan', esc(u.plan) + (u.planExpiresAt ? ` <span class="muted small">until ${esc(when(u.planExpiresAt).split(',')[0])}</span>` : ''))}

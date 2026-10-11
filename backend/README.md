@@ -54,6 +54,14 @@ signs up with `ADMIN_EMAIL` becomes the owner.
 
 Game numbers (plan prices and caps, levels, spin prizes, bonuses, challenges) are all in `src/rules.js`.
 
+## Languages
+
+The user app is translated into English, French, Spanish, Chinese, Swahili, Hausa and Twi. On a first visit it picks the
+language from the visitor's country (worked out from the device's time zone), and the sign-up form lets people choose their
+country. Text lives in `i18n/<language>.json`; after editing, run `npm run i18n` to rebuild `public/i18n.js`, and commit both.
+Add `?country=TG` or `?lang=fr` to the address to try another country or language. Task titles and questions are not
+translated: they show exactly as written in the dashboard. Have native speakers review the Hausa, Twi and Swahili text.
+
 ## API
 
 All routes are under `/api`. Send `Authorization: Bearer <token>` except where noted. Errors look like

@@ -280,3 +280,27 @@ test('paystack: checkout, signed webhook, idempotency, wrong amount and verify',
   p = await call('GET', '/premium', { token: ama.token });
   assert.equal(p.body.onlinePayment.prices[0].amount, 80);
 });
+
+test('sign-up saves country and language; translations are complete', async () => {
+  let r = await signup('Koffi', 'koffi@test.tg', { country: 'tg', lang: 'fr' });
+  assert.equal(r.status, 201);
+  assert.equal(r.body.user.country, 'TG');
+  assert.equal(r.body.user.lang, 'fr');
+  assert.equal((await signup('Bad', 'bad@test.com', { country: 'Togo' })).status, 400);
+  assert.equal((await signup('Bad', 'bad2@test.com', { lang: 'de' })).status, 400);
+  const tok = r.body.token;
+  for (const l of ['es', 'zh', 'sw', 'ha', 'tw', 'en']) assert.equal((await call('PATCH', '/me', { token: tok, body: { lang: l } })).body.user.lang, l);
+  assert.equal((await call('PATCH', '/me', { token: tok, body: { country: 'KE' } })).body.user.country, 'KE');
+
+  // Every language has every text, with the same {placeholders} as English.
+  const { check, LANGS } = require('../scripts/build-i18n');
+  const strings = Object.fromEntries(LANGS.map(([c]) => [c, require(`../i18n/${c}.json`)]));
+  assert.deepEqual(check(strings), []);
+  // Every message the server can send to a user has a translation entry.
+  const fs = require('fs'), path = require('path');
+  const src = ['routes/auth.js', 'routes/play.js', 'routes/premium.js', 'routes/user.js', 'middleware.js', 'mfa.js', 'paystack.js']
+    .map((f) => fs.readFileSync(path.join(__dirname, '..', 'src', f), 'utf8')).join('\n');
+  const msgs = [...src.matchAll(/HttpError\(\d+, (['"])(.+?)\1/g)].map((m) => m[2]).filter((m) => !/staff|Staff|admin|Admin|two-step|Two-step|setup|owner|ADMIN|Start setup|not a payment/.test(m));
+  const missing = msgs.filter((m) => !(m in strings.en.srv) && !Object.keys(strings.en.srv).some((k) => k.includes('{') && new RegExp('^' + k.replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\\?\{\w+\\?\}/g, '.+') + '$').test(m.replace(/\$\{[^}]+\}/g, 'X'))));
+  assert.deepEqual(missing, []);
+});

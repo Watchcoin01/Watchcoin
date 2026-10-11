@@ -115,8 +115,21 @@ test('streak, spin and weekly challenge rules', async () => {
   assert.equal((await call('POST', '/rewards/streak/claim', { token: ama.token })).status, 409);
 
   assert.equal((await call('POST', '/rewards/spin', { token: admin.token })).status, 403); // no task done yet
+  // Ama has finished 3 of her 5 tasks (2 missed, 1 done): the wheel stays locked until all 5 are finished.
+  let rw = (await call('GET', '/rewards', { token: ama.token })).body.spin;
+  assert.equal(rw.unlocked, false);
+  assert.deepEqual([rw.tasksFinished, rw.tasksTotal], [3, 5]);
+  assert.equal((await call('POST', '/rewards/spin', { token: ama.token })).status, 403);
+  await call('POST', '/tasks/4/start', { token: ama.token });
+  backdate(ama.id, 4, 15000);
+  assert.equal((await call('POST', '/tasks/4/complete', { token: ama.token })).body.ok, true);
+  await call('POST', '/tasks/5/start', { token: ama.token });
+  assert.equal((await call('POST', '/tasks/5/complete', { token: ama.token, body: { answer: 2 } })).body.ok, true);
+  rw = (await call('GET', '/rewards', { token: ama.token })).body.spin;
+  assert.equal(rw.unlocked, true);
   r = await call('POST', '/rewards/spin', { token: ama.token });
   assert.equal(r.status, 200);
+  assert.deepEqual(r.body.prizes, [20, 50, 100, 50, 200, 100, 500]); // prizes are 10x the old ones
   assert.ok(r.body.prizes.includes(r.body.prize));
   assert.equal((await call('POST', '/rewards/spin', { token: ama.token })).status, 409);
 

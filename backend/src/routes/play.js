@@ -127,15 +127,26 @@ router.post('/tasks/:id/complete', (req, res) => {
 // ---------- streak and spin ----------
 const yesterday = () => R.dayKey(Date.now() - R.MS_DAY);
 
+// The wheel unlocks once every task available today is finished. A task counts as finished when it was
+// completed or missed (wrong answer). Tasks closed because their budget ran out don't need to be done.
+function spinProgress(u, day) {
+  const list = S.availableTasks(u);
+  const fin = new Set(db.prepare("SELECT task_id FROM sessions WHERE user_id=? AND day=? AND status IN ('done','failed')").all(u.id, day).map((r) => r.task_id));
+  const needed = list.filter((t) => fin.has(t.id) || !(t.budget > 0 && t.spent >= t.budget));
+  const finished = needed.filter((t) => fin.has(t.id)).length;
+  return { finished, total: needed.length, all: needed.length > 0 && finished >= needed.length };
+}
+
 function rewardsState(u) {
   const day = R.dayKey();
   const claimedToday = u.last_claim === day;
   const nextStreak = claimedToday ? u.streak : u.last_claim === yesterday() ? u.streak + 1 : 1;
-  const doneToday = db.prepare("SELECT COUNT(*) c FROM sessions WHERE user_id=? AND day=? AND status='done'").get(u.id, day).c;
+  const prog = spinProgress(u, day);
   return {
     streak: { current: u.streak, claimedToday, next: nextStreak, nextAmount: R.BONUS.streakBase * Math.min(nextStreak, R.BONUS.streakCapDays) },
-    spin: { prizes: R.SPIN_PRIZES, unlocked: doneToday >= 1 && u.spin_day !== day, spunToday: u.spin_day === day,
-      prize: u.spin_day === day ? u.spin_prize : null, index: u.spin_day === day ? u.spin_index : null, needs: doneToday >= 1 ? null : 'Complete a task to unlock' },
+    spin: { prizes: R.SPIN_PRIZES, unlocked: prog.all && u.spin_day !== day, spunToday: u.spin_day === day,
+      prize: u.spin_day === day ? u.spin_prize : null, index: u.spin_day === day ? u.spin_index : null,
+      tasksFinished: prog.finished, tasksTotal: prog.total, needs: prog.all ? null : "Finish all of today's tasks to unlock" },
   };
 }
 
@@ -158,7 +169,7 @@ router.post('/rewards/spin', (req, res) => {
   const u = req.user, day = R.dayKey();
   const st = rewardsState(u).spin;
   if (st.spunToday) throw new HttpError(409, 'You already spun today');
-  if (!st.unlocked) throw new HttpError(403, 'Complete a task to unlock the wheel');
+  if (!st.unlocked) throw new HttpError(403, "Finish all of today's tasks to unlock the wheel");
   const index = crypto.randomInt(R.SPIN_PRIZES.length);
   const prize = R.SPIN_PRIZES[index];
   db.transaction(() => {

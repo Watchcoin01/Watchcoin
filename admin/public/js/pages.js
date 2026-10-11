@@ -1,6 +1,6 @@
 /* The six dashboard pages. Each page: { title, render(container, ctx) }. */
 (function () {
-  const { $, esc, fmt, usdt, when, api, toast, modal, confirmBox, bars, download, state, pages, can, roleChip } = window.WC;
+  const { $, esc, fmt, usdt, when, api, toast, modal, confirmBox, bars, download, state, pages, can, roleChip, country } = window.WC;
   const TYPE = { watch: 'Watch', like: 'Like', subscribe: 'Subscribe', poll: 'Poll' };
   const head = (title, tools = '') => `<div class="head"><h1>${esc(title)}</h1><div class="tools">${tools}</div></div>`;
   const tabs = (items, cur, attr) => `<div class="tabs" role="group">${items.map(([k, l]) => `<button data-${attr}="${k}" aria-pressed="${k === cur}">${esc(l)}</button>`).join('')}</div>`;
@@ -135,8 +135,8 @@
       const load = async () => { users = (await api('GET', `/admin/users?search=${encodeURIComponent(S.q)}&limit=${LIM}&offset=${S.off}`)).users; draw(); };
       function draw() {
         const list = users.filter((u) => !S.flag || u.flags > 0);
-        $('#ut').innerHTML = list.length ? `<table><thead><tr><th>User</th><th>Plan</th><th class="num">Balance</th><th class="num">Earned</th><th class="num">Invited</th><th class="num">Flags</th><th>Joined</th><th></th></tr></thead><tbody>${list.map((u) => `<tr><td><a href="#/user/${u.id}"><strong>${esc(u.name)}</strong></a> ${roleChip(u.role)} ${u.banned ? '<span class="chip bad">Banned</span>' : ''}<div class="small muted">${esc(u.email)}${u.emailVerified ? '' : ' · unverified'}</div></td>
-          <td>${esc(u.plan)}</td><td class="num">${fmt(u.balance)}</td><td class="num">${fmt(u.lifetime)}</td><td class="num">${u.referrals}</td><td class="num">${u.flags ? `<span class="chip bad">${u.flags}</span>` : '0'}</td><td class="small nowrap">${esc(when(u.createdAt).split(',')[0])}</td>
+        $('#ut').innerHTML = list.length ? `<table><thead><tr><th>User</th><th>Country</th><th>Plan</th><th class="num">Balance</th><th class="num">Earned</th><th class="num">Invited</th><th class="num">Flags</th><th>Joined</th><th></th></tr></thead><tbody>${list.map((u) => `<tr><td><a href="#/user/${u.id}"><strong>${esc(u.name)}</strong></a> ${roleChip(u.role)} ${u.banned ? '<span class="chip bad">Banned</span>' : ''}<div class="small muted">${esc(u.email)}${u.emailVerified ? '' : ' · unverified'}</div></td>
+          <td class="nowrap">${esc(country(u.country)) || '<span class="muted">-</span>'}</td><td>${esc(u.plan)}</td><td class="num">${fmt(u.balance)}</td><td class="num">${fmt(u.lifetime)}</td><td class="num">${u.referrals}</td><td class="num">${u.flags ? `<span class="chip bad">${u.flags}</span>` : '0'}</td><td class="small nowrap">${esc(when(u.createdAt).split(',')[0])}</td>
           <td><div class="acts">${can('owner') ? `<button class="btn ghost sm" data-act="adj" data-id="${u.id}">Adjust</button>` : ''}${u.role !== 'user' || !can('admin') ? '' : `<button class="btn ghost sm" data-act="ban" data-id="${u.id}">${u.banned ? 'Unban' : 'Ban'}</button>`}</div></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No users found.</div>';
         $('#up').textContent = `Showing ${S.off + 1}-${S.off + users.length}`;
         c.querySelector('[data-act=prev]').disabled = S.off === 0; c.querySelector('[data-act=next]').disabled = users.length < LIM;

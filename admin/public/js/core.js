@@ -17,6 +17,9 @@
   const RANK = { user: 0, support: 1, admin: 2, owner: 3 };
   const can = (min) => !!window.WC.me && (RANK[window.WC.me.role] || 0) >= RANK[min];
   const ROLE_LABEL = { owner: 'Owner', admin: 'Admin', support: 'Support', user: 'User' };
+  // Country code (GH, TG...) shown as a flag and name.
+  const country = (c) => { if (!c) return ''; let n = c; try { n = new Intl.DisplayNames(['en'], { type: 'region' }).of(c) || c; } catch (e) { /* old browser */ } return `${String.fromCodePoint(...[...c].map((x) => 127397 + x.charCodeAt(0)))} ${n}`; };
+  const LANG_NAME = { en: 'English', fr: 'French', es: 'Spanish', zh: 'Chinese', sw: 'Swahili', ha: 'Hausa', tw: 'Twi' };
   const roleChip = (role) => (RANK[role] ? `<span class="chip gold">${ROLE_LABEL[role]}</span>` : '');
 
   async function api(method, path, body, raw) {
@@ -91,6 +94,6 @@
   window.WC = {
     cfg, $, esc, fmt, usdt, when, api, toast, modal, closeModal, confirmBox, bars, download, state: {}, pages: {},
     setToken, hasToken: () => !!token, onAuthLost: (f) => { authLost = f; }, on2faRequired: (f) => { need2fa = f; },
-    me: null, can, RANK, ROLE_LABEL, roleChip,
+    me: null, can, RANK, ROLE_LABEL, roleChip, country, LANG_NAME,
   };
 })();

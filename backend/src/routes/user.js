@@ -18,12 +18,14 @@ router.patch('/me', (req, res) => {
   const b = parse(z.object({
     name: z.string().trim().min(1).max(60).optional(),
     avatar: z.string().max(8).nullable().optional(),
-    lang: z.enum(['en', 'fr', 'ha', 'tw']).optional(),
+    lang: z.enum(R.LANGS).optional(),
+    country: z.string().trim().toUpperCase().regex(/^[A-Z]{2}$/).nullable().optional(),
     onboarded: z.boolean().optional(),
   }), req.body);
   const u = req.user;
-  db.prepare('UPDATE users SET name=?, avatar=?, lang=?, onboarded=? WHERE id=?').run(
-    b.name ?? u.name, b.avatar === undefined ? u.avatar : b.avatar, b.lang ?? u.lang, b.onboarded === undefined ? u.onboarded : +b.onboarded, u.id);
+  db.prepare('UPDATE users SET name=?, avatar=?, lang=?, country=?, onboarded=? WHERE id=?').run(
+    b.name ?? u.name, b.avatar === undefined ? u.avatar : b.avatar, b.lang ?? u.lang, b.country === undefined ? u.country : b.country,
+    b.onboarded === undefined ? u.onboarded : +b.onboarded, u.id);
   res.json({ user: S.publicUser(S.getUser(u.id)) });
 });
 

@@ -11,6 +11,7 @@ const { publicUser, notify, getUser, audit } = require('../services');
 const { isStaff } = require('../roles');
 const { checkCode } = require('../mfa');
 const mailer = require('../mailer');
+const R = require('../rules');
 
 const router = express.Router();
 const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', 10); // keeps login timing the same for unknown emails
@@ -43,6 +44,8 @@ router.post('/signup', async (req, res) => {
   const b = parse(z.object({
     name: z.string().trim().min(1).max(60), email, password, inviteCode: z.string().trim().max(12).optional(),
     adminSetupCode: z.string().trim().max(200).optional(),
+    country: z.string().trim().toUpperCase().regex(/^[A-Z]{2}$/).optional(),
+    lang: z.enum(R.LANGS).optional(),
   }), req.body);
 
   if (db.prepare('SELECT 1 FROM users WHERE email = ?').get(b.email)) throw new HttpError(409, 'An account with this email already exists');
@@ -58,10 +61,10 @@ router.post('/signup', async (req, res) => {
 
   let info;
   try {
-    info = db.prepare(`INSERT INTO users(email,name,pass_hash,recovery_hash,role,ref_code,referred_by,verify_token,signup_ip,created_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?)`).run(
+    info = db.prepare(`INSERT INTO users(email,name,pass_hash,recovery_hash,role,ref_code,referred_by,verify_token,signup_ip,created_at,country,lang)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(
       b.email, b.name, passHash, recoveryHash, mayClaimOwner(b.email, b.adminSetupCode) ? 'owner' : 'user', refCode,
-      inviter ? inviter.id : null, verifyToken, req.ip, Date.now());
+      inviter ? inviter.id : null, verifyToken, req.ip, Date.now(), b.country || null, b.lang || 'en');
   } catch (e) {
     // Two signups for the same email at the same moment: the database keeps one.
     if (String(e.code).startsWith('SQLITE_CONSTRAINT')) throw new HttpError(409, 'An account with this email already exists');

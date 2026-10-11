@@ -102,11 +102,11 @@ router.delete('/tasks/:id', ADMIN, (req, res) => {
 router.get('/users', SUPPORT, (req, res) => {
   const q = parse(z.object({ search: z.string().trim().max(80).default(''), limit: z.coerce.number().int().min(1).max(200).default(50), offset: z.coerce.number().int().min(0).default(0) }), req.query);
   const like = `%${q.search}%`;
-  const users = db.prepare(`SELECT id, email, name, role, balance, lifetime, plan, plan_exp, flags, banned, email_verified, totp_enabled, created_at,
+  const users = db.prepare(`SELECT id, email, name, role, balance, lifetime, plan, plan_exp, flags, banned, email_verified, totp_enabled, country, lang, created_at,
       (SELECT COUNT(*) FROM users r WHERE r.referred_by=users.id) referrals FROM users WHERE email LIKE ? OR name LIKE ? ORDER BY id DESC LIMIT ? OFFSET ?`)
     .all(like, like, q.limit, q.offset);
   res.json({ users: users.map((u) => ({ id: u.id, email: u.email, name: u.name, role: u.role, balance: u.balance, lifetime: u.lifetime,
-    plan: R.PLANS[R.activePlan(u)].name, flags: u.flags, banned: !!u.banned, emailVerified: !!u.email_verified, twoFactor: !!u.totp_enabled, referrals: u.referrals, createdAt: u.created_at })) });
+    plan: R.PLANS[R.activePlan(u)].name, flags: u.flags, banned: !!u.banned, emailVerified: !!u.email_verified, twoFactor: !!u.totp_enabled, country: u.country, lang: u.lang, referrals: u.referrals, createdAt: u.created_at })) });
 });
 
 router.post('/users/:id/ban', ADMIN, (req, res) => {
@@ -230,9 +230,9 @@ router.get('/charts', SUPPORT, (req, res) => {
 });
 
 router.get('/export/users.csv', OWNER, (req, res) => {
-  const rows = db.prepare('SELECT name, email, role, balance, lifetime, plan, plan_exp, flags, banned, created_at FROM users ORDER BY id').all();
-  const head = ['name', 'email', 'role', 'balance', 'lifetime', 'plan', 'flags', 'banned', 'joined'];
-  const lines = rows.map((u) => [u.name, u.email, u.role, u.balance, u.lifetime, R.PLANS[R.activePlan(u)].name, u.flags, u.banned, R.dayKey(u.created_at)].map(csvCell).join(','));
+  const rows = db.prepare('SELECT name, email, role, country, lang, balance, lifetime, plan, plan_exp, flags, banned, created_at FROM users ORDER BY id').all();
+  const head = ['name', 'email', 'role', 'country', 'language', 'balance', 'lifetime', 'plan', 'flags', 'banned', 'joined'];
+  const lines = rows.map((u) => [u.name, u.email, u.role, u.country || '', u.lang, u.balance, u.lifetime, R.PLANS[R.activePlan(u)].name, u.flags, u.banned, R.dayKey(u.created_at)].map(csvCell).join(','));
   res.type('text/csv').attachment('users.csv').send([head.join(','), ...lines].join('\n'));
 });
 
@@ -252,6 +252,7 @@ router.get('/users/:id', SUPPORT, (req, res) => {
   res.json({
     user: {
       id: u.id, email: u.email, name: u.name, role: u.role, banned: !!u.banned, emailVerified: !!u.email_verified, twoFactor: !!u.totp_enabled,
+      country: u.country, lang: u.lang,
       balance: u.balance, balanceUsdt: R.toUsdt(u.balance, S.tokenPrice()), lifetime: u.lifetime, streak: u.streak, flags: u.flags,
       level: lvl.name, plan: R.PLANS[plan].name, planExpiresAt: plan ? u.plan_exp : null, signupIp: u.signup_ip, createdAt: u.created_at,
       lastActivity: (db.prepare('SELECT MAX(created_at) v FROM ledger WHERE user_id=?').get(u.id).v) || null,
