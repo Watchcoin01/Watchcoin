@@ -14,9 +14,17 @@ function checkCode(user, code, { allowBackup = true } = {}) {
     throw new HttpError(429, 'Too many wrong codes. Try again in 15 minutes.');
   }
   const raw = String(code || '').trim();
-  const step = totp.verify(totp.open(user.totp_secret), raw, user.totp_last_step);
+  // If DATA_KEY was changed, the saved secret can no longer be read. That must not crash the login:
+  // backup codes do not need the secret, so they keep working, and everything else gets a clear message.
+  let secret = null;
+  try { secret = totp.open(user.totp_secret); } catch {
+    console.error(`Two-step secret of user ${user.id} cannot be read. DATA_KEY was probably changed. Put the old key in DATA_KEY_PREVIOUS, or run: npm run reset-2fa -- <email>`);
+  }
+  const step = secret ? totp.verify(secret, raw, user.totp_last_step) : null;
   if (step !== null) {
     db.prepare('UPDATE users SET totp_last_step=?, mfa_fails=0 WHERE id=?').run(step, user.id);
+    // Saved with an older key: save it again with the current one.
+    if (!totp.isCurrent(user.totp_secret)) db.prepare('UPDATE users SET totp_secret=? WHERE id=?').run(totp.seal(secret), user.id);
     return { backupUsed: false, backupLeft: JSON.parse(user.backup_codes).length };
   }
   if (allowBackup && raw.length >= 10) {
@@ -30,6 +38,9 @@ function checkCode(user, code, { allowBackup = true } = {}) {
   const fails = user.mfa_fails + 1;
   if (fails >= MAX_FAILS) db.prepare('UPDATE users SET mfa_fails=0, mfa_locked_until=? WHERE id=?').run(Date.now() + LOCK_MS, user.id);
   else db.prepare('UPDATE users SET mfa_fails=? WHERE id=?').run(fails, user.id);
+  if (!secret) {
+    throw new HttpError(409, 'The server cannot check authenticator codes for this account right now. Enter one of your backup codes, or ask the person who runs the server to reset your two-step login.', { code: '2fa_unreadable' });
+  }
   throw new HttpError(401, 'That code is not right');
 }
 

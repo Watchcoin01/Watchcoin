@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.4.3
+
+- **Fixed: staff could not sign in with their authenticator code ("Something went wrong") after `DATA_KEY` was changed.**
+  The saved authenticator secret can only be read with the key it was saved with, and the server crashed instead of saying so.
+  Now:
+  - the login gives a clear message instead of a crash;
+  - **backup codes still work** (they did not before, because the crash came first);
+  - a new optional variable **`DATA_KEY_PREVIOUS`** takes the old key, so authenticator codes keep working, and each secret is
+    re-saved with the new key at the next sign-in;
+  - a new command **`npm run reset-2fa -- you@example.com`** switches two-step login off for one account from the server's
+    command line, for when the phone and the backup codes are both gone.
+
 ## 1.4.2
 
 - **The prize wheel now spins on phones.** Many phones have animations switched off ("Reduce motion" on iPhone, "Remove

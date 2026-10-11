@@ -55,20 +55,30 @@ const otpauthUrl = (secret, email) =>
   `otpauth://totp/${encodeURIComponent(`Watchcoin:${email}`)}?secret=${secret}&issuer=Watchcoin&algorithm=SHA1&digits=6&period=30`;
 
 // Secrets are encrypted in the database so a leaked database file does not leak the codes.
-const key = () => crypto.createHash('sha256').update(`totp:${cfg.dataKey}`).digest();
+const keyFrom = (k) => crypto.createHash('sha256').update(`totp:${k}`).digest();
 function seal(plain) {
   const iv = crypto.randomBytes(12);
-  const c = crypto.createCipheriv('aes-256-gcm', key(), iv);
+  const c = crypto.createCipheriv('aes-256-gcm', keyFrom(cfg.dataKey), iv);
   const enc = Buffer.concat([c.update(plain, 'utf8'), c.final()]);
   return ['v1', iv.toString('base64'), c.getAuthTag().toString('base64'), enc.toString('base64')].join('.');
 }
-function open(sealed) {
+function openWith(sealed, k) {
   const [v, iv, tag, enc] = String(sealed || '').split('.');
   if (v !== 'v1') throw new Error('unknown secret format');
-  const d = crypto.createDecipheriv('aes-256-gcm', key(), Buffer.from(iv, 'base64'));
+  const d = crypto.createDecipheriv('aes-256-gcm', keyFrom(k), Buffer.from(iv, 'base64'));
   d.setAuthTag(Buffer.from(tag, 'base64'));
   return Buffer.concat([d.update(Buffer.from(enc, 'base64')), d.final()]).toString('utf8');
 }
+// Tries the current DATA_KEY first, then any DATA_KEY_PREVIOUS. Throws if none of them fits.
+function open(sealed) {
+  let last;
+  for (const k of [cfg.dataKey, ...(cfg.previousDataKeys || [])]) {
+    try { return openWith(sealed, k); } catch (e) { last = e; }
+  }
+  throw last;
+}
+// True when the secret is saved with the current key (so it does not need re-saving).
+const isCurrent = (sealed) => { try { openWith(sealed, cfg.dataKey); return true; } catch { return false; } };
 
 // Backup codes: 10 one-time codes for when the phone is lost. Only their hashes are stored.
 const hashBackup = (c) => crypto.createHash('sha256').update(String(c).replace(/[\s-]/g, '').toUpperCase()).digest('hex');
@@ -78,4 +88,4 @@ function newBackupCodes(n = 10) {
   return { codes, hashes: codes.map(hashBackup) };
 }
 
-module.exports = { newSecret, codeAt, verify, otpauthUrl, seal, open, hashBackup, newBackupCodes, base32Encode, base32Decode, STEP_MS };
+module.exports = { newSecret, codeAt, verify, otpauthUrl, seal, open, isCurrent, hashBackup, newBackupCodes, base32Encode, base32Decode, STEP_MS };

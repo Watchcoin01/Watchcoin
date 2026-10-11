@@ -8,6 +8,7 @@
     "dev": "node --watch src/server.js",
     "test": "node --test",
     "make-owner": "node scripts/make-owner.js",
+    "reset-2fa": "node scripts/reset-2fa.js",
     "i18n": "node scripts/build-i18n.js"
   },
   "engines": {

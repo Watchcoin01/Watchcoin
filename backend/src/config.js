@@ -21,6 +21,9 @@ module.exports = {
   jwtSecret: process.env.JWT_SECRET || 'dev-only-secret-change-me',
   // Key used to encrypt two-step login secrets in the database. Falls back to JWT_SECRET.
   dataKey: process.env.DATA_KEY || process.env.JWT_SECRET || 'dev-only-secret-change-me',
+  // Old key(s) to still read two-step secrets that were saved before DATA_KEY changed (comma separated).
+  // They are only used for reading, and each secret is re-saved with the new key the next time its owner signs in.
+  previousDataKeys: (process.env.DATA_KEY_PREVIOUS || '').split(',').map((k) => k.trim()).filter(Boolean),
   // On Railway, a mounted Volume is used automatically so the database survives redeploys.
   dbPath: process.env.DB_PATH || (process.env.RAILWAY_VOLUME_MOUNT_PATH ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'watchcoin.db') : './data/watchcoin.db'),
   corsOrigin: process.env.CORS_ORIGIN || '*', // in production, set this to your admin address
