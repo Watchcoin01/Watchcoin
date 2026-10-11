@@ -131,6 +131,8 @@ test('streak, spin and weekly challenge rules', async () => {
   assert.equal(r.status, 200);
   assert.deepEqual(r.body.prizes, [20, 50, 100, 50, 200, 100, 500]); // prizes are 10x the old ones
   assert.ok(r.body.prizes.includes(r.body.prize));
+  assert.equal(r.body.animals[r.body.index], r.body.animal);
+  assert.equal(r.body.animals[r.body.prizes.indexOf(500)], 'dragon'); // the jackpot is the dragon
   assert.equal((await call('POST', '/rewards/spin', { token: ama.token })).status, 409);
 
   const ch = await call('GET', '/challenges', { token: ama.token });

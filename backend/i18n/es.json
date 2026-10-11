@@ -249,7 +249,16 @@
   "about.readH": "Por favor, lee esto",
   "about.readP": "Nadie puede prometer que WTC valdrá dinero ni que alguien obtendrá ganancias por tenerlo. Gana WTC por diversión o como extra. Paga un plan Premium solo si estás dispuesto a perder ese dinero, y nunca pidas prestado para participar.",
   "about.fairH": "Juego limpio",
-  "about.fairP": "Una cuenta por persona. Los bots, las cuentas falsas y las trampas llevan a un bloqueo y a la pérdida de tokens. ¿Tienes una pregunta o un problema? Envíalo desde la pestaña Yo."
+  "about.fairP": "Una cuenta por persona. Los bots, las cuentas falsas y las trampas llevan a un bloqueo y a la pérdida de tokens. ¿Tienes una pregunta o un problema? Envíalo desde la pestaña Yo.",
+  "an.goat": "Cabra",
+  "an.wolf": "Lobo",
+  "an.croc": "Cocodrilo",
+  "an.bull": "Toro",
+  "an.lion": "León",
+  "an.eagle": "Águila",
+  "an.dragon": "Dragón",
+  "spin.jackpot": "¡Premio mayor del dragón!",
+  "spin.tap": "Toca para continuar"
  },
  "srv": {
   "An account with this email already exists": "Ya existe una cuenta con este correo",

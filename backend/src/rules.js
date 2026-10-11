@@ -21,7 +21,19 @@ const LEVELS = [
   { name: 'Platinum', min: 10000, boost: 0.15 },
 ];
 
-const SPIN_PRIZES = [20, 50, 100, 50, 200, 100, 500];
+// The prize wheel, in order around the wheel. Each segment has an animal; the dragon is the jackpot.
+// Change prizes here and the app follows. Animal names must exist in the app (goat, wolf, croc, bull, lion, eagle, dragon).
+const SPIN_SEGMENTS = [
+  { prize: 20, animal: 'goat' },
+  { prize: 50, animal: 'wolf' },
+  { prize: 100, animal: 'croc' },
+  { prize: 50, animal: 'bull' },
+  { prize: 200, animal: 'lion' },
+  { prize: 100, animal: 'eagle' },
+  { prize: 500, animal: 'dragon' },
+];
+const SPIN_PRIZES = SPIN_SEGMENTS.map((s) => s.prize);
+const SPIN_ANIMALS = SPIN_SEGMENTS.map((s) => s.animal);
 const BONUS = { allDone: 25, referral: 50, streakBase: 5, streakCapDays: 7 };
 const MAX_TASKS_PER_HOUR = 5;
 const MIN_QUIZ_READ_MS = 1500; // answering a question faster than this after the timer ends is treated as a bot
@@ -71,6 +83,6 @@ const rewardFor = (task, user) =>
 const toUsdt = (wtc, price) => Number((wtc * price).toFixed(6));
 
 module.exports = {
-  LANGS, MS_DAY, PLANS, PLAN_DAYS, LEVELS, SPIN_PRIZES, BONUS, MAX_TASKS_PER_HOUR, MIN_QUIZ_READ_MS,
+  LANGS, MS_DAY, PLANS, PLAN_DAYS, LEVELS, SPIN_PRIZES, SPIN_ANIMALS, BONUS, MAX_TASKS_PER_HOUR, MIN_QUIZ_READ_MS,
   CHALLENGES, ACHIEVEMENTS, dayKey, dayStart, weekStart, levelFor, activePlan, rewardFor, toUsdt,
 };

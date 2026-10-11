@@ -249,7 +249,16 @@
   "about.readH": "Da fatan za ka karanta",
   "about.readP": "Babu wanda zai iya yin alkawarin cewa WTC zai sami ƙimar kuɗi, ko cewa wani zai ci riba ta riƙe shi. Sami WTC don nishaɗi ko a matsayin ƙari. Ka biya tsarin Premium ne kawai idan ba damuwa ka rasa kuɗin, kuma kada ka taɓa cin bashi don shiga.",
   "about.fairH": "Wasa na gaskiya",
-  "about.fairP": "Asusu ɗaya ga kowane mutum. Bot, asusun ƙarya da yaudara suna kai wa ga hana shiga da rasa tokens. Kana da tambaya ko matsala? Aika ta daga shafin Ni."
+  "about.fairP": "Asusu ɗaya ga kowane mutum. Bot, asusun ƙarya da yaudara suna kai wa ga hana shiga da rasa tokens. Kana da tambaya ko matsala? Aika ta daga shafin Ni.",
+  "an.goat": "Akuya",
+  "an.wolf": "Kyarkeci",
+  "an.croc": "Kada",
+  "an.bull": "Bijimi",
+  "an.lion": "Zaki",
+  "an.eagle": "Mikiya",
+  "an.dragon": "Dragon",
+  "spin.jackpot": "Babbar kyautar Dragon!",
+  "spin.tap": "Taɓa don ci gaba"
  },
  "srv": {
   "An account with this email already exists": "Akwai asusu da wannan imel tuni",

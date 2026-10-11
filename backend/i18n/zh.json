@@ -249,7 +249,16 @@
   "about.readH": "请务必阅读",
   "about.readP": "没有人能保证 WTC 一定值钱，也没有人能保证持有它会获利。请把赚取 WTC 当作娱乐或额外奖励。只有在你能接受损失这笔钱时才购买高级版套餐，切勿借钱参与。",
   "about.fairH": "公平规则",
-  "about.fairP": "每人限一个账户。使用机器人、虚假账户或作弊将被封号并清除代币。有问题？请在“我的”页面提交。"
+  "about.fairP": "每人限一个账户。使用机器人、虚假账户或作弊将被封号并清除代币。有问题？请在“我的”页面提交。",
+  "an.goat": "山羊",
+  "an.wolf": "狼",
+  "an.croc": "鳄鱼",
+  "an.bull": "公牛",
+  "an.lion": "狮子",
+  "an.eagle": "雄鹰",
+  "an.dragon": "巨龙",
+  "spin.jackpot": "巨龙大奖！",
+  "spin.tap": "点击继续"
  },
  "srv": {
   "An account with this email already exists": "该邮箱已注册账户",

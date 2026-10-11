@@ -141,7 +141,8 @@ ${s ? `<label for="fC">${t('auth.invite')}</label><input type="text" id="fC" val
 
 const wheel = (sp, lk) => {
   const W = sp.prizes, SG = 360 / W.length, rot = sp.spunToday ? 1800 - (sp.index * SG + SG / 2) : 0;
-  return `<div class="wh${lk ? ' locked' : ''}"><b class="ptr" aria-hidden="true"><svg width="26" height="22" viewBox="0 0 26 22"><path d="M13 22L1 2h24z" fill="currentColor" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg></b>${lk ? `<div class="lk"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>${t('spin.lock')}</span></div>` : ''}<div id="wl" style="background:conic-gradient(${W.map((v, i) => `hsl(${i * 51} 65% 48%) ${i * SG}deg ${(i + 1) * SG}deg`).join(',')});transform:rotate(${rot}deg)">${W.map((v, i) => `<span style="transform:rotate(${i * SG + SG / 2}deg) translateY(-88px)">${v}</span>`).join('')}</div></div>`;
+  const AN = (window.WCBeast && window.WCBeast.ANIMALS) || {}, an = sp.animals || [];
+  return `<div class="wh${lk ? ' locked' : ''}"><b class="ptr" aria-hidden="true"><svg width="26" height="22" viewBox="0 0 26 22"><path d="M13 22L1 2h24z" fill="currentColor" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg></b>${lk ? `<div class="lk"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>${t('spin.lock')}</span></div>` : ''}<div id="wl" style="background:conic-gradient(${W.map((v, i) => `${(AN[an[i]] || {}).c || `hsl(${i * 51} 65% 48%)`} ${i * SG}deg ${(i + 1) * SG}deg`).join(',')});transform:rotate(${rot}deg)">${W.map((v, i) => `<span class="${an[i] === 'dragon' ? 'jp' : ''}" style="transform:rotate(${i * SG + SG / 2}deg) translateY(-82px)" title="${esc(t('an.' + an[i]))}"><i>${(AN[an[i]] || {}).e || ''}</i><b>${v}</b></span>`).join('')}</div></div>`;
 };
 
 function vTasks(u) {
@@ -264,7 +265,12 @@ async function doSpin() {
     spinning = 1; document.querySelector('[data-a=spin]').disabled = true;
     l.style.transition = 'none'; l.style.transform = 'rotate(0deg)'; void l.offsetWidth;
     l.style.transition = 'transform 4s cubic-bezier(.12,.7,.1,1)'; l.style.transform = `rotate(${1800 - (r.index * SG + SG / 2)}deg)`;
-    setTimeout(async () => { spinning = 0; pop = 1; await go(); toast(t('spin.toast', { n: r.prize })); confetti(); }, 4200);
+    setTimeout(async () => {
+      const animal = r.animal || (r.animals || [])[r.index] || 'goat';
+      if (window.WCBeast) await window.WCBeast.play({ animal, prize: r.prize, name: t('an.' + animal), title: animal === 'dragon' ? t('spin.jackpot') : t('an.' + animal), hint: t('spin.tap') });
+      else confetti();
+      spinning = 0; pop = 1; await go(); toast(t('spin.toast', { n: r.prize }));
+    }, 4200);
   } catch (e) { toast(e.message); }
 }
 

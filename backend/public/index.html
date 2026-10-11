@@ -452,6 +452,14 @@ dialog .opt{background:#F4F8FC;color:#174F91;border-color:#D3E1EF}
 .vg .act .done,.vg .act .meta{padding:8px 0;font-size:12px}
 .vg .rw{left:8px;bottom:8px;padding:3px 8px;font-size:12px}
 @media(min-width:600px){.tg.vg{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.vg .task .tb h3{font-size:16px}.vg .task .chip{font-size:11px}.vg .rw{font-size:14px;padding:4px 10px}}
+/* Animal wheel: each segment shows its animal and prize; the dragon jackpot glows */
+#wl span{width:44px;margin:-20px 0 0 -22px;display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1}
+#wl span i{font-style:normal;font-size:22px;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+#wl span b{font:800 13px 'Bricolage Grotesque',system-ui,sans-serif;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+#wl span.jp i{font-size:28px;animation:jpglow 1.6s ease-in-out infinite}
+#wl span.jp b{color:#FFE08A}
+@keyframes jpglow{50%{filter:drop-shadow(0 0 8px #FFB300) drop-shadow(0 0 2px #fff)}}
+@media (prefers-reduced-motion:reduce){#wl span.jp i{animation:none}}
 </style>
 </head>
 <body>
@@ -472,6 +480,7 @@ dialog .opt{background:#F4F8FC;color:#174F91;border-color:#D3E1EF}
 <dialog id="ab"><div id="abB"></div></dialog>
 <div class="toast" id="toast" role="status"></div>
 <script src="/i18n.js"></script>
+<script src="/beast.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>

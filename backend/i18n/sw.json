@@ -249,7 +249,16 @@
   "about.readH": "Tafadhali soma",
   "about.readP": "Hakuna anayeweza kuahidi kwamba WTC itakuwa na thamani ya pesa, au kwamba mtu yeyote atapata faida kwa kuishikilia. Pata WTC kwa burudani au kama ziada. Lipia mpango wa Premium tu ikiwa uko tayari kupoteza pesa hiyo, na kamwe usikope pesa ili kushiriki.",
   "about.fairH": "Mchezo wa haki",
-  "about.fairP": "Akaunti moja kwa kila mtu. Roboti, akaunti bandia na udanganyifu husababisha kufungiwa na kupoteza tokeni. Una swali au tatizo? Litume kutoka kichupo cha Mimi."
+  "about.fairP": "Akaunti moja kwa kila mtu. Roboti, akaunti bandia na udanganyifu husababisha kufungiwa na kupoteza tokeni. Una swali au tatizo? Litume kutoka kichupo cha Mimi.",
+  "an.goat": "Mbuzi",
+  "an.wolf": "Mbwa mwitu",
+  "an.croc": "Mamba",
+  "an.bull": "Fahali",
+  "an.lion": "Simba",
+  "an.eagle": "Tai",
+  "an.dragon": "Joka",
+  "spin.jackpot": "Zawadi kuu ya Joka!",
+  "spin.tap": "Gusa ili kuendelea"
  },
  "srv": {
   "An account with this email already exists": "Tayari kuna akaunti yenye barua pepe hii",

@@ -144,7 +144,7 @@ function rewardsState(u) {
   const prog = spinProgress(u, day);
   return {
     streak: { current: u.streak, claimedToday, next: nextStreak, nextAmount: R.BONUS.streakBase * Math.min(nextStreak, R.BONUS.streakCapDays) },
-    spin: { prizes: R.SPIN_PRIZES, unlocked: prog.all && u.spin_day !== day, spunToday: u.spin_day === day,
+    spin: { prizes: R.SPIN_PRIZES, animals: R.SPIN_ANIMALS, unlocked: prog.all && u.spin_day !== day, spunToday: u.spin_day === day,
       prize: u.spin_day === day ? u.spin_prize : null, index: u.spin_day === day ? u.spin_index : null,
       tasksFinished: prog.finished, tasksTotal: prog.total, needs: prog.all ? null : "Finish all of today's tasks to unlock" },
   };
@@ -177,7 +177,7 @@ router.post('/rewards/spin', (req, res) => {
     S.credit(u.id, prize, 'spin', 'Daily spin');
     S.checkAchievements(u.id);
   })();
-  res.json({ index, prize, prizes: R.SPIN_PRIZES, balance: S.getUser(u.id).balance });
+  res.json({ index, prize, animal: R.SPIN_ANIMALS[index], prizes: R.SPIN_PRIZES, animals: R.SPIN_ANIMALS, balance: S.getUser(u.id).balance });
 });
 
 // ---------- weekly challenges and achievements ----------

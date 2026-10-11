@@ -249,7 +249,16 @@
   "about.readH": "Please read",
   "about.readP": "Nobody can promise that WTC will be worth money, or that anyone will make a profit by holding it. Earn WTC for fun or as a bonus. Only pay for a premium plan if you are comfortable losing that money, and never borrow money to take part.",
   "about.fairH": "Fair play",
-  "about.fairP": "One account per person. Bots, fake accounts and cheating lead to a ban and loss of tokens. Have a question or a problem? Send it from the Me tab."
+  "about.fairP": "One account per person. Bots, fake accounts and cheating lead to a ban and loss of tokens. Have a question or a problem? Send it from the Me tab.",
+  "an.goat": "Goat",
+  "an.wolf": "Wolf",
+  "an.croc": "Crocodile",
+  "an.bull": "Bull",
+  "an.lion": "Lion",
+  "an.eagle": "Eagle",
+  "an.dragon": "Dragon",
+  "spin.jackpot": "Dragon jackpot!",
+  "spin.tap": "Tap to continue"
  },
  "srv": {
   "An account with this email already exists": "An account with this email already exists",

@@ -249,7 +249,16 @@
   "about.readH": "Yɛsrɛ wo, kenkan",
   "about.readP": "Obiara ntumi nhyɛ bɔ sɛ WTC bɛsom sika, anaa sɛ obi bɛnya mfasoɔ sɛ ɔkura mu a. Nya WTC ma anigyeɛ anaa sɛ ntoasoɔ. Tua Premium nhyehyɛe ho ka sɛ ɛmma wo werɛ nhow sɛ wobɛhwere sika no nko ara, na nnfa bosea biara mmɛka ho.",
   "about.fairH": "Agorɔ pa",
-  "about.fairP": "Akontaabu baako ma onipa biara. Bot, akontaabu atorɔ ne nnaadaa ma wɔsiw wo kwan na wohwere wo token. Wowɔ asɛmmisa anaa ɔhaw? Fa fi Me tab no so soma."
+  "about.fairP": "Akontaabu baako ma onipa biara. Bot, akontaabu atorɔ ne nnaadaa ma wɔsiw wo kwan na wohwere wo token. Wowɔ asɛmmisa anaa ɔhaw? Fa fi Me tab no so soma.",
+  "an.goat": "Abirekyie",
+  "an.wolf": "Pataku",
+  "an.croc": "Ɔdɛnkyɛm",
+  "an.bull": "Nantwinini",
+  "an.lion": "Gyata",
+  "an.eagle": "Ɔkɔre",
+  "an.dragon": "Dragon",
+  "spin.jackpot": "Dragon akyɛdeɛ kɛseɛ!",
+  "spin.tap": "Mia na kɔ so"
  },
  "srv": {
   "An account with this email already exists": "Akontaabu a ɛwɔ saa email yi wɔ hɔ dada",

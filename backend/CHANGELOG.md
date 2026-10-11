@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.0
+
+- **Animal prize wheel.** Each segment has an animal: goat 20, wolf 50, crocodile 100, bull 50, lion 200, eagle 100,
+  and the dragon for the 500 jackpot (it glows on the wheel). Segments and animals are set together in `SPIN_SEGMENTS`
+  in `src/rules.js`.
+- **Win show** (`public/beast.js`): the winning animal appears, rears back and breathes fire and smoke while the screen
+  shakes (and the phone vibrates where supported), then the coins burst out and the prize counts up. The stronger the animal,
+  the bigger the fire, shake and coin burst; the dragon jackpot is the biggest, with a full-screen flash.
+  Tap to skip. People who turn on "reduce motion" on their phone get a calm version without fire or shaking.
+
 ## 1.2.0
 
 ### New
