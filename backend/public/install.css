@@ -1,0 +1,16 @@
+/* "Install app" banner. Colours come from the app's own theme, so it follows light and dark mode. */
+#wcInstall{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:60;max-width:460px;margin:0 auto;
+  display:flex;gap:12px;align-items:center;background:var(--card,#fff);color:var(--ink,#14213D);border:1px solid var(--line,#dde3d8);
+  border-radius:18px;padding:12px 12px 12px 14px;box-shadow:0 12px 40px rgba(8,14,40,.28);animation:wcUp .35s ease-out}
+@keyframes wcUp{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+#wcInstall[hidden]{display:none}
+#wcInstall img{width:52px;height:52px;border-radius:13px;flex:none;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+#wcInstall .wcT{flex:1;min-width:0}
+#wcInstall b{display:block;font-size:16px;line-height:1.2}
+#wcInstall p{margin:3px 0 0;font-size:13px;line-height:1.35;color:var(--mute,#5b6580)}
+#wcInstall .wcB{display:flex;flex-direction:column;gap:6px;flex:none}
+#wcInstall button{font:inherit;font-weight:700;font-size:14px;border-radius:11px;padding:10px 14px;cursor:pointer;border:0;min-height:40px}
+#wcInstall .wcGo{background:var(--gold,#F5B700);color:#14213D}
+#wcInstall .wcNo{background:none;color:var(--mute,#5b6580);padding:6px 14px;min-height:32px;font-weight:600}
+#wcInstall button:focus-visible{outline:3px solid var(--acc,#2B4BFF);outline-offset:2px}
+@media (max-width:380px){#wcInstall{flex-wrap:wrap}#wcInstall .wcB{flex-direction:row;width:100%;justify-content:flex-end}}

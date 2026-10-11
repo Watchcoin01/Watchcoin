@@ -258,7 +258,15 @@
   "an.eagle": "Aigle",
   "an.dragon": "Dragon",
   "spin.jackpot": "Jackpot du dragon !",
-  "spin.tap": "Touchez pour continuer"
+  "spin.tap": "Touchez pour continuer",
+  "install.title": "Installer Watchcoin",
+  "install.sub": "Ajoutez l’appli à votre écran d’accueil. Elle s’ouvre vite, comme n’importe quelle appli.",
+  "install.btn": "Installer l’appli",
+  "install.later": "Plus tard",
+  "install.iosTitle": "Installer Watchcoin sur votre iPhone",
+  "install.ios": "Touchez le bouton Partager, puis « Sur l’écran d’accueil ».",
+  "install.gotIt": "Compris",
+  "install.openBrowser": "Ouvrez cette page dans votre navigateur (Chrome ou Safari) pour installer l’appli."
  },
  "srv": {
   "An account with this email already exists": "Un compte existe déjà avec cet e-mail",

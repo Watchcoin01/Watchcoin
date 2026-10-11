@@ -258,7 +258,15 @@
   "an.eagle": "雄鹰",
   "an.dragon": "巨龙",
   "spin.jackpot": "巨龙大奖！",
-  "spin.tap": "点击继续"
+  "spin.tap": "点击继续",
+  "install.title": "安装 Watchcoin",
+  "install.sub": "把应用添加到主屏幕，像其他应用一样快速打开。",
+  "install.btn": "安装应用",
+  "install.later": "以后再说",
+  "install.iosTitle": "在 iPhone 上安装 Watchcoin",
+  "install.ios": "点按“分享”按钮，然后选择“添加到主屏幕”。",
+  "install.gotIt": "知道了",
+  "install.openBrowser": "请在浏览器（Chrome 或 Safari）中打开此页面来安装应用。"
  },
  "srv": {
   "An account with this email already exists": "该邮箱已注册账户",

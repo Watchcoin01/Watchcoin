@@ -13,7 +13,7 @@ const fxRate = () => Number(getSetting('fx_rate', '')) || cfg.paystack.fxRate ||
 const enabled = () => !!cfg.paystack.secretKey && fxRate() > 0;
 
 // Plan price in the smallest unit of the currency (pesewas for GHS, kobo for NGN).
-const priceMinor = (plan) => Math.round(R.PLANS[plan].priceUsdt * fxRate() * 100);
+const priceMinor = (plan) => Math.round(S.planPrice(plan) * fxRate() * 100);
 
 async function call(method, path, body) {
   let r;
@@ -39,8 +39,8 @@ async function startCheckout(user, plan) {
   if (!enabled()) throw new HttpError(503, 'Online payment is not set up yet. Use the manual payment option.');
   const reference = `wc_${user.id}_${crypto.randomBytes(8).toString('hex')}`;
   const amount = priceMinor(plan), currency = cfg.paystack.currency;
-  db.prepare('INSERT INTO payments(user_id,plan,provider,reference,amount,currency,created_at) VALUES (?,?,?,?,?,?,?)')
-    .run(user.id, plan, 'paystack', reference, amount, currency, Date.now());
+  db.prepare('INSERT INTO payments(user_id,plan,provider,reference,amount,currency,created_at,price_usdt) VALUES (?,?,?,?,?,?,?,?)')
+    .run(user.id, plan, 'paystack', reference, amount, currency, Date.now(), S.planPrice(plan));
   try {
     const data = await call('POST', '/transaction/initialize', {
       email: user.email, amount, currency, reference,
@@ -77,8 +77,8 @@ function applyTransaction(tx) {
     const now = Date.now();
     db.prepare("UPDATE payments SET status='success', paid_at=? WHERE id=?").run(now, p.id);
     // Recorded as an approved upgrade too, so revenue reports include online payments.
-    db.prepare("INSERT INTO upgrades(user_id,plan,reference,status,created_at,decided_at,source) VALUES (?,?,?,'approved',?,?,'paystack')")
-      .run(p.user_id, p.plan, `paystack:${p.reference}`, p.created_at, now);
+    db.prepare("INSERT INTO upgrades(user_id,plan,reference,status,created_at,decided_at,source,price_usdt) VALUES (?,?,?,'approved',?,?,'paystack',?)")
+      .run(p.user_id, p.plan, `paystack:${p.reference}`, p.created_at, now, p.price_usdt ?? S.planPrice(p.plan));
     S.activatePlan(p.user_id, p.plan);
     return { status: 'success', payment: p };
   })();

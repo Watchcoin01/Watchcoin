@@ -258,7 +258,15 @@
   "an.eagle": "Ɔkɔre",
   "an.dragon": "Dragon",
   "spin.jackpot": "Dragon akyɛdeɛ kɛseɛ!",
-  "spin.tap": "Mia na kɔ so"
+  "spin.tap": "Mia na kɔ so",
+  "install.title": "Fa Watchcoin si",
+  "install.sub": "Fa app no ka wo fie screen so. Ɛbue ntɛm, te sɛ app foforo biara.",
+  "install.btn": "Fa app no si",
+  "install.later": "Ɛnyɛ seisei",
+  "install.iosTitle": "Fa Watchcoin si wo iPhone so",
+  "install.ios": "Mia Share button no, afei “Add to Home Screen”.",
+  "install.gotIt": "Mate",
+  "install.openBrowser": "Bue saa page yi wɔ wo browser (Chrome anaa Safari) mu na fa app no si."
  },
  "srv": {
   "An account with this email already exists": "Akontaabu a ɛwɔ saa email yi wɔ hɔ dada",

@@ -1,5 +1,37 @@
 # Changelog
 
+## 1.5.2
+
+- **"Install app" banner.** When someone opens the site, a banner offers to put Watchcoin on their home screen.
+  - Android and desktop Chrome/Edge: one tap on **Install app** opens the browser's install box. (Browsers do not allow a
+    website to install itself silently, so the person always confirms; this is how other websites do it too.)
+  - iPhone/iPad: Apple gives websites no install button, so the banner shows the two steps: Share, then Add to Home Screen.
+  - Inside Facebook, Instagram, TikTok and similar apps, which cannot install anything: it asks the person to open the page
+    in Chrome or Safari.
+  - Never shown inside the installed app or after installing. "Not now" hides it for 7 days.
+- Added a small service worker (`public/sw.js`), which browsers require before they offer the install. It stores nothing, so
+  people always get the newest version, and an offline phone sees a short message instead of a browser error page.
+- Banner texts added in all 7 languages. The Hausa and Twi versions should be checked by a native speaker.
+
+## 1.5.1
+
+- **The Watchcoin logo is now the app icon.** The gold W emblem on navy is used for the browser tab, for "Add to Home Screen"
+  on iPhone and Android, and as the install icon. Files: `backend/public/favicon.ico`, `backend/public/icons/*`, and
+  `backend/public/manifest.webmanifest`. The admin dashboard uses the same logo as its tab icon.
+- The home-screen icon has its own version with extra margin, so Android can crop it to a circle or rounded square without
+  cutting off the logo.
+
+## 1.5.0
+
+- **The owner can now set and change the price of each premium plan.** Dashboard → Settings → "Premium plan prices". Prices
+  are in USDT, from 1 to 1000, with at most 2 decimals, and each plan must cost more than the one below it (Plus < Pro < VIP).
+  Only the owner can change them, and each change is written to the audit log.
+- A new price applies to new upgrades straight away: the plan cards and payment screen in the app, and the amount charged
+  online through Paystack. People who already paid keep their plan.
+- **Past sales keep the price they were sold at.** Each upgrade now remembers what it cost, so raising a price never changes
+  old revenue figures, and a user who asked for a plan at the price they were shown is approved at that price.
+- The starting prices (5, 15, 30) still apply until the owner changes them. Tasks per day and the 30-day length are unchanged.
+
 ## 1.4.3
 
 - **Fixed: staff could not sign in with their authenticator code ("Something went wrong") after `DATA_KEY` was changed.**

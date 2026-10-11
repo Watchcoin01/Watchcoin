@@ -137,9 +137,9 @@ router.post('/users/:id/adjust', OWNER, (req, res) => {
 // ---------- premium upgrades ----------
 router.get('/upgrades', SUPPORT, (req, res) => {
   const { status } = parse(z.object({ status: z.enum(['pending', 'approved', 'rejected']).default('pending') }), req.query);
-  const rows = db.prepare(`SELECT g.id, g.plan, g.reference, g.status, g.created_at createdAt, u.id userId, u.name, u.email
+  const rows = db.prepare(`SELECT g.id, g.plan, g.reference, g.status, g.price_usdt, g.created_at createdAt, u.id userId, u.name, u.email
     FROM upgrades g JOIN users u ON u.id=g.user_id WHERE g.status=? ORDER BY g.id`).all(status);
-  res.json({ upgrades: rows.map((r) => ({ ...r, planName: R.PLANS[r.plan].name, priceUsdt: R.PLANS[r.plan].priceUsdt })) });
+  res.json({ upgrades: rows.map((r) => ({ ...r, planName: R.PLANS[r.plan].name, priceUsdt: r.price_usdt ?? S.planPrice(r.plan) })) });
 });
 
 router.post('/upgrades/:id/decide', ADMIN, (req, res) => {
@@ -148,7 +148,8 @@ router.post('/upgrades/:id/decide', ADMIN, (req, res) => {
   if (!g) throw new HttpError(404, 'Request not found');
   if (g.status !== 'pending') throw new HttpError(409, 'Already decided');
   db.transaction(() => {
-    db.prepare('UPDATE upgrades SET status=?, decided_at=? WHERE id=?').run(approve ? 'approved' : 'rejected', Date.now(), g.id);
+    // Requests made before prices could change have no saved price yet: save the price that applies now.
+    db.prepare('UPDATE upgrades SET status=?, decided_at=?, price_usdt=COALESCE(price_usdt, ?) WHERE id=?').run(approve ? 'approved' : 'rejected', Date.now(), S.planPrice(g.plan), g.id);
     if (approve) {
       S.activatePlan(g.user_id, g.plan);
     } else {
@@ -178,23 +179,44 @@ router.post('/tickets/:id/resolve', SUPPORT, (req, res) => {
 const settingsOut = () => ({
   paymentInfo: getSetting('payment_info'), launchAt: getSetting('launch_at') || null, tokenPrice: S.tokenPrice(),
   paystack: { configured: !!cfg.paystack.secretKey, enabled: paystack.enabled(), currency: cfg.paystack.currency,
-    fxRate: paystack.fxRate(), prices: R.PLANS.filter((p) => p.id > 0).map((p) => ({ plan: p.name, priceUsdt: p.priceUsdt, amount: paystack.priceMinor(p.id) / 100 })) },
+    fxRate: paystack.fxRate(), prices: S.plansNow().filter((p) => p.id > 0).map((p) => ({ plan: p.name, priceUsdt: p.priceUsdt, amount: paystack.priceMinor(p.id) / 100 })) },
+  plans: S.plansNow().filter((p) => p.id > 0).map((p) => ({ id: p.id, name: p.name, priceUsdt: p.priceUsdt, defaultUsdt: R.PLANS[p.id].priceUsdt, tasksPerDay: p.tasksPerDay, days: R.PLAN_DAYS })),
 });
 router.get('/settings', ADMIN, (req, res) => {
   res.json(settingsOut());
 });
+// Plan prices: whole cents only, between 1 and 1000 USDT (Paystack refuses very small amounts), and each plan must
+// cost more than the one below it, because upgrading means moving to a more expensive plan.
+function checkPlanPrices(pp) {
+  const list = [pp[1], pp[2], pp[3]];
+  for (const [i, v] of list.entries()) {
+    const name = R.PLANS[i + 1].name;
+    if (!Number.isFinite(v) || v < 1 || v > 1000) throw new HttpError(400, `${name}: the price must be between 1 and 1000 USDT`);
+    if (Math.round(v * 100) / 100 !== v) throw new HttpError(400, `${name}: use at most 2 decimal places`);
+  }
+  if (!(list[0] < list[1] && list[1] < list[2])) throw new HttpError(400, 'Each plan must cost more than the one below it (Plus < Pro < VIP)');
+}
 router.put('/settings', OWNER, (req, res) => {
   const b = parse(z.object({
     paymentInfo: z.string().trim().min(1).max(500).optional(),
     launchAt: z.union([z.literal(''), z.string().datetime()]).nullable().optional(),
     tokenPrice: z.number().positive().max(1000).optional(),
     fxRate: z.number().positive().max(100000).optional(),
+    // Price of each paid plan in USDT, for example { "1": 5, "2": 15, "3": 30 }. All three are sent together.
+    planPrices: z.object({ 1: z.number(), 2: z.number(), 3: z.number() }).optional(),
   }), req.body);
+  if (b.planPrices) checkPlanPrices(b.planPrices);
   if (b.paymentInfo !== undefined) setSetting('payment_info', b.paymentInfo);
   if (b.launchAt !== undefined) setSetting('launch_at', b.launchAt || '');
   if (b.tokenPrice !== undefined) setSetting('token_price', b.tokenPrice);
   if (b.fxRate !== undefined) setSetting('fx_rate', b.fxRate);
-  audit(req, 'settings.update', 'settings', null, Object.keys(b).map((k) => (['tokenPrice', 'fxRate'].includes(k) ? `${k}=${b[k]}` : k)).join(', '));
+  let priceNote = '';
+  if (b.planPrices) {
+    const before = S.planPrices();
+    setSetting('plan_prices', JSON.stringify({ 1: b.planPrices[1], 2: b.planPrices[2], 3: b.planPrices[3] }));
+    priceNote = `planPrices ${R.PLANS.filter((p) => p.id > 0).map((p) => `${p.name} ${before[p.id]}->${b.planPrices[p.id]}`).join(', ')}`;
+  }
+  audit(req, 'settings.update', 'settings', null, Object.keys(b).filter((k) => k !== 'planPrices').map((k) => (['tokenPrice', 'fxRate'].includes(k) ? `${k}=${b[k]}` : k)).concat(priceNote || []).join(', '));
   res.json(settingsOut());
 });
 
@@ -344,12 +366,14 @@ router.get('/fraud', ADMIN, (req, res) => {
 router.get('/economics', ADMIN, (req, res) => {
   const { days } = parse(z.object({ days: z.coerce.number().int().min(1).max(365).default(30) }), req.query);
   const price = S.tokenPrice(), from = R.dayStart(Date.now() - (days - 1) * R.MS_DAY);
-  const approved = db.prepare("SELECT plan, decided_at t FROM upgrades WHERE status='approved' AND decided_at>=?").all(from);
+  // price_usdt is what the plan cost at the time; older rows have none and were sold at the starting price.
+  const approved = db.prepare("SELECT plan, decided_at t, price_usdt FROM upgrades WHERE status='approved' AND decided_at>=?").all(from)
+    .map((g) => ({ ...g, price: g.price_usdt ?? R.PLANS[g.plan].priceUsdt }));
   const out = [];
   for (let i = days - 1; i >= 0; i--) {
     const a = R.dayStart(Date.now() - i * R.MS_DAY), b = a + R.MS_DAY;
     const issued = db.prepare("SELECT COALESCE(SUM(amount),0) v FROM ledger WHERE amount>0 AND kind!='adjust' AND created_at>=? AND created_at<?").get(a, b).v;
-    const revenue = approved.filter((g) => g.t >= a && g.t < b).reduce((x, g) => x + R.PLANS[g.plan].priceUsdt, 0);
+    const revenue = approved.filter((g) => g.t >= a && g.t < b).reduce((x, g) => x + g.price, 0);
     out.push({ date: R.dayKey(a), revenueUsdt: revenue, issuedWtc: issued, issuedUsdt: R.toUsdt(issued, price) });
   }
   const revenue = out.reduce((a, d) => a + d.revenueUsdt, 0), issued = out.reduce((a, d) => a + d.issuedWtc, 0);
@@ -436,8 +460,8 @@ router.post('/payments/:id/approve', ADMIN, (req, res) => {
   if (p.status !== 'review') throw new HttpError(409, 'Only payments in review can be approved here');
   db.transaction(() => {
     db.prepare("UPDATE payments SET status='success', note=note || ' (approved by admin)' WHERE id=?").run(p.id);
-    db.prepare("INSERT INTO upgrades(user_id,plan,reference,status,created_at,decided_at,source) VALUES (?,?,?,'approved',?,?,'paystack')")
-      .run(p.user_id, p.plan, `paystack:${p.reference}`, p.created_at, Date.now());
+    db.prepare("INSERT INTO upgrades(user_id,plan,reference,status,created_at,decided_at,source,price_usdt) VALUES (?,?,?,'approved',?,?,'paystack',?)")
+      .run(p.user_id, p.plan, `paystack:${p.reference}`, p.created_at, Date.now(), p.price_usdt ?? S.planPrice(p.plan));
     S.activatePlan(p.user_id, p.plan);
   })();
   audit(req, 'payment.approve', 'user', p.user_id, `${p.reference} ${R.PLANS[p.plan].name}`);

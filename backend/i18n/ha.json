@@ -258,7 +258,15 @@
   "an.eagle": "Mikiya",
   "an.dragon": "Dragon",
   "spin.jackpot": "Babbar kyautar Dragon!",
-  "spin.tap": "Taɓa don ci gaba"
+  "spin.tap": "Taɓa don ci gaba",
+  "install.title": "Shigar da Watchcoin",
+  "install.sub": "Ƙara manhajar a allon gidanka. Tana buɗewa da sauri, kamar kowace manhaja.",
+  "install.btn": "Shigar da manhaja",
+  "install.later": "Ba yanzu ba",
+  "install.iosTitle": "Shigar da Watchcoin a iPhone ɗinka",
+  "install.ios": "Danna maɓallin Raba, sannan “Ƙara zuwa Allon Gida”.",
+  "install.gotIt": "Na gane",
+  "install.openBrowser": "Buɗe wannan shafin a burauzarka (Chrome ko Safari) don shigar da manhajar."
  },
  "srv": {
   "An account with this email already exists": "Akwai asusu da wannan imel tuni",

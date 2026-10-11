@@ -4,6 +4,20 @@ const { rank } = require('./roles');
 
 const tokenPrice = () => Number(getSetting('token_price', '0.005301'));
 
+// Premium plan prices in USDT. The owner can change them in the dashboard (Settings); until then the starting prices
+// from rules.js apply. Stored as JSON like {"1":5,"2":15,"3":30}.
+function planPrices() {
+  let saved = {};
+  try { saved = JSON.parse(getSetting('plan_prices', '{}')) || {}; } catch { /* use the defaults */ }
+  return R.PLANS.map((p) => {
+    const v = Number(saved[p.id]);
+    return p.id > 0 && v > 0 ? v : p.priceUsdt;
+  });
+}
+const planPrice = (id) => planPrices()[id];
+// The plans as users and staff see them, with the current price filled in.
+const plansNow = () => { const pr = planPrices(); return R.PLANS.map((p) => ({ ...p, priceUsdt: pr[p.id] })); };
+
 // Every balance change goes through here so the ledger and the balance never disagree.
 // Call it inside db.transaction() together with the other writes that belong to the same action.
 function credit(userId, amount, kind, note = '') {
@@ -48,7 +62,7 @@ function activatePlan(userId, plan) {
   let start = now;
   if (cur === plan) start = u.plan_exp;
   else if (cur > 0) {
-    const leftMs = u.plan_exp - now, oldPrice = R.PLANS[cur].priceUsdt, newPrice = R.PLANS[plan].priceUsdt;
+    const leftMs = u.plan_exp - now, oldPrice = planPrice(cur), newPrice = planPrice(plan);
     if (newPrice > 0) start = now + Math.floor(leftMs * oldPrice / newPrice);
   }
   const exp = start + R.PLAN_DAYS * R.MS_DAY;
@@ -101,4 +115,4 @@ function checkAchievements(userId) {
   return fresh;
 }
 
-module.exports = { audit, activatePlan, tokenPrice, credit, notify, getUser, publicUser, availableTasks, taskPublic, weekProgress, checkAchievements };
+module.exports = { audit, activatePlan, tokenPrice, planPrices, planPrice, plansNow, credit, notify, getUser, publicUser, availableTasks, taskPublic, weekProgress, checkAchievements };

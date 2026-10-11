@@ -178,6 +178,8 @@ addColumn('users', 'backup_codes', "TEXT NOT NULL DEFAULT '[]'");
 addColumn('users', 'mfa_fails', 'INTEGER NOT NULL DEFAULT 0');
 addColumn('users', 'mfa_locked_until', 'INTEGER NOT NULL DEFAULT 0');
 addColumn('upgrades', 'source', "TEXT NOT NULL DEFAULT 'manual'");
+addColumn('upgrades', 'price_usdt', 'REAL'); // what the plan cost when it was requested, so later price changes never rewrite old revenue
+addColumn('payments', 'price_usdt', 'REAL');
 addColumn('users', 'country', 'TEXT'); // ISO code such as GH or TG, chosen at sign-up
 
 // Roles used to be just 'user' and 'admin'. The first admin becomes the owner.

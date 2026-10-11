@@ -19,7 +19,7 @@ router.get('/premium', (req, res) => {
   const u = req.user, price = S.tokenPrice(), current = R.activePlan(u);
   res.json({
     current: { id: current, name: R.PLANS[current].name, expiresAt: current ? u.plan_exp : null },
-    plans: R.PLANS.map((p) => ({ ...p, days: p.id ? R.PLAN_DAYS : null, maxWtcPerDay: maxPerDay(p.id), maxUsdtPerDay: R.toUsdt(maxPerDay(p.id), price), premiumTasks: p.id > 0 })),
+    plans: S.plansNow().map((p) => ({ ...p, days: p.id ? R.PLAN_DAYS : null, maxWtcPerDay: maxPerDay(p.id), maxUsdtPerDay: R.toUsdt(maxPerDay(p.id), price), premiumTasks: p.id > 0 })),
     pending: !!db.prepare("SELECT 1 FROM upgrades WHERE user_id=? AND status='pending'").get(u.id),
     paymentInfo: getSetting('payment_info'),
     requests: db.prepare('SELECT id, plan, reference, status, created_at createdAt FROM upgrades WHERE user_id=? ORDER BY id DESC LIMIT 10').all(u.id),
@@ -36,7 +36,7 @@ router.post('/premium/upgrade', (req, res) => {
   const u = req.user;
   if (db.prepare("SELECT 1 FROM upgrades WHERE user_id=? AND status='pending'").get(u.id)) throw new HttpError(409, 'You already have an upgrade waiting for review');
   if (b.plan < R.activePlan(u)) throw new HttpError(400, 'You already have a higher plan');
-  db.prepare('INSERT INTO upgrades(user_id,plan,reference,created_at) VALUES (?,?,?,?)').run(u.id, b.plan, b.reference, Date.now());
+  db.prepare('INSERT INTO upgrades(user_id,plan,reference,created_at,price_usdt) VALUES (?,?,?,?,?)').run(u.id, b.plan, b.reference, Date.now(), S.planPrice(b.plan));
   S.notify(u.id, `Your ${R.PLANS[b.plan].name} upgrade is waiting for review.`);
   res.status(201).json({ ok: true });
 });

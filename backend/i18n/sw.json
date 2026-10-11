@@ -258,7 +258,15 @@
   "an.eagle": "Tai",
   "an.dragon": "Joka",
   "spin.jackpot": "Zawadi kuu ya Joka!",
-  "spin.tap": "Gusa ili kuendelea"
+  "spin.tap": "Gusa ili kuendelea",
+  "install.title": "Weka Watchcoin",
+  "install.sub": "Ongeza programu kwenye skrini yako ya mwanzo. Inafunguka haraka, kama programu nyingine yoyote.",
+  "install.btn": "Weka programu",
+  "install.later": "Si sasa",
+  "install.iosTitle": "Weka Watchcoin kwenye iPhone yako",
+  "install.ios": "Bofya kitufe cha Shiriki, kisha “Ongeza kwenye Skrini ya Kwanza”.",
+  "install.gotIt": "Nimeelewa",
+  "install.openBrowser": "Fungua ukurasa huu kwenye kivinjari chako (Chrome au Safari) ili kuweka programu."
  },
  "srv": {
   "An account with this email already exists": "Tayari kuna akaunti yenye barua pepe hii",
