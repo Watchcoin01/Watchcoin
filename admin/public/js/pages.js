@@ -230,7 +230,11 @@
           <input type="datetime-local" id="sL" value="${local}" aria-label="Launch date"><div class="tools" style="margin-top:10px"><button class="btn" data-act="launch">Save launch date</button></div></div>
         <div class="card"><h3>Token price</h3><p class="muted">The USDT value of 1 WTC. This changes the USDT amount shown to every user.</p>
           <input type="number" id="sT" step="0.000001" min="0.000001" value="${s.tokenPrice}" aria-label="Token price in USDT"><div class="tools" style="margin-top:10px"><button class="btn" data-act="price">Save price</button></div></div>
-        <div class="card"><h3>Online payments (Paystack)</h3>${s.paystack.configured ? '' : '<p class="muted"><strong>Not connected.</strong> Set PAYSTACK_SECRET_KEY on the backend, then set the exchange rate here.</p>'}
+                <div class="card"><h3>Premium plan prices</h3><p class="muted">What each plan costs, in USDT, for ${s.plans[0].days} days. The new price applies to new upgrades straight away. People who already paid keep their plan, and past sales are not changed. Each plan must cost more than the one below it.</p>
+          <div class="tools">${s.plans.map((l) => `<label class="small muted">${esc(l.name)} (${l.tasksPerDay} tasks a day)<br><input type="number" class="pp" data-id="${l.id}" step="0.01" min="1" max="1000" value="${l.priceUsdt}" aria-label="${esc(l.name)} price in USDT" style="width:120px"></label>`).join(' ')}</div>
+          <p class="small muted">Starting prices: ${s.plans.map((l) => `${esc(l.name)} ${l.defaultUsdt}`).join(', ')} USDT.</p>
+          <div class="tools" style="margin-top:10px"><button class="btn" data-act="plans">Save prices</button></div></div>
+<div class="card"><h3>Online payments (Paystack)</h3>${s.paystack.configured ? '' : '<p class="muted"><strong>Not connected.</strong> Set PAYSTACK_SECRET_KEY on the backend, then set the exchange rate here.</p>'}
           <p class="muted">How much 1 USDT costs in ${esc(s.paystack.currency)}. Plan prices are set in USDT and charged in ${esc(s.paystack.currency)} at this rate. Update it when the rate moves.</p>
           <input type="number" id="sF" step="0.01" min="0.01" value="${s.paystack.fxRate || ''}" placeholder="e.g. 15.5" aria-label="Exchange rate"><div class="tools" style="margin-top:10px"><button class="btn" data-act="fx">Save rate</button></div>
           ${s.paystack.fxRate ? `<table style="margin-top:12px"><tbody>${s.paystack.prices.map((p) => `<tr><td>${esc(p.plan)}</td><td class="num">${p.priceUsdt} USDT</td><td class="num">${p.amount.toFixed(2)} ${esc(s.paystack.currency)}</td></tr>`).join('')}</tbody></table>` : ''}
@@ -243,6 +247,16 @@
         if (b.dataset.act === 'price') {
           const p = parseFloat($('#sT').value); if (!(p > 0)) throw new Error('Enter a price above 0');
           if (await confirmBox('Change the token price?', `1 WTC will be worth ${p} USDT for every user.`, 'Change price')) { await api('PUT', '/admin/settings', { tokenPrice: p }); toast('Price updated'); }
+        }
+        if (b.dataset.act === 'plans') {
+          const planPrices = {};
+          for (const el of c.querySelectorAll('.pp')) {
+            const v = parseFloat(el.value);
+            if (!(v >= 1 && v <= 1000) || Math.round(v * 100) / 100 !== v) throw new Error('Enter prices between 1 and 1000 USDT, with at most 2 decimals');
+            planPrices[el.dataset.id] = v;
+          }
+          const text = s.plans.map((l) => `${l.name}: ${l.priceUsdt} to ${planPrices[l.id]} USDT`).join('; ');
+          if (await confirmBox('Change the plan prices?', text, 'Save prices')) { await api('PUT', '/admin/settings', { planPrices }); toast('Prices saved'); pages.settings.render(c); }
         }
         if (b.dataset.act === 'fx') {
           const r = parseFloat($('#sF').value); if (!(r > 0)) throw new Error('Enter a rate above 0');

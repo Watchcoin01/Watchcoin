@@ -35,3 +35,11 @@ test('security headers are present', async () => {
   assert.match(res.headers.get('content-security-policy'), /script-src 'self'/);
   assert.equal(res.headers.get('x-frame-options'), 'DENY');
 });
+
+test('the tab icon files are served with the right type', async () => {
+  for (const [url, type] of [['/favicon.ico', 'image/x-icon'], ['/icons/favicon-32.png', 'image/png'], ['/icons/apple-touch-icon.png', 'image/png']]) {
+    const res = await fetch(`http://127.0.0.1:${port}${url}`);
+    assert.equal(res.status, 200, url);
+    assert.equal(res.headers.get('content-type'), type, url);
+  }
+});
