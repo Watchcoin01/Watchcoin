@@ -150,6 +150,11 @@ Lets users pay for premium with Mobile Money or card, and turns the plan on auto
 - **One copy only:** keep the backend at **1 replica**. The database can't be shared between copies.
 - **Updates:** change files on GitHub and Railway redeploys the service whose folder changed. Users and balances stay,
   because they live on the volume.
+- **Install banner:** visitors see an "Install app" banner. It only appears on a secure (https) address, which Railway gives you.
+  To test it, open the site on an Android phone in Chrome, or on a computer in Chrome or Edge. Clear the site's data first if you
+  tapped "Not now" before, because that hides it for 7 days.
+- **Changing what the premium plans cost:** sign in as the owner, open **Settings**, and use **Premium plan prices**. The new
+  price applies to new upgrades straight away and is also what Paystack charges (at the exchange rate you set there).
 - **Locked out of the dashboard?** Use a backup code. If those are gone too, open a shell on the backend service in
   Railway and run `npm run reset-2fa -- you@example.com`. That switches two-step login off for that account; sign in and turn
   it on again. (If you are no longer the owner, `npm run make-owner -- you@example.com` makes you the owner again.)
