@@ -151,7 +151,11 @@ Lets users pay for premium with Mobile Money or card, and turns the plan on auto
 - **Updates:** change files on GitHub and Railway redeploys the service whose folder changed. Users and balances stay,
   because they live on the volume.
 - **Locked out of the dashboard?** Use a backup code. If those are gone too, open a shell on the backend service in
-  Railway and run `npm run make-owner -- you@example.com` after the owner resets two-step login; or contact whoever has owner access.
+  Railway and run `npm run reset-2fa -- you@example.com`. That switches two-step login off for that account; sign in and turn
+  it on again. (If you are no longer the owner, `npm run make-owner -- you@example.com` makes you the owner again.)
+- **Never change `DATA_KEY` after two-step login is on.** It protects the saved authenticator secrets. If you must change it,
+  put the old value in a new variable `DATA_KEY_PREVIOUS` first (keep it until everyone has signed in once), or staff will be
+  unable to sign in with their authenticator app and will need a backup code or `npm run reset-2fa`.
 - **Logs:** each service's **Deployments** tab shows its logs. The backend prints a short status when it starts.
 
 ## Not included yet
