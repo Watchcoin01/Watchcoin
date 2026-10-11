@@ -4,7 +4,8 @@
   "description": "Admin dashboard for Watchcoin. A separate static app that talks to the Watchcoin API.",
   "private": true,
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test"
   },
   "engines": {
     "node": "22.x"

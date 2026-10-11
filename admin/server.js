@@ -28,13 +28,19 @@ function send(res, status, type, body, extra = {}) {
   res.end(body);
 }
 
-const server = http.createServer((req, res) => {
-  const url = new URL(req.url, 'http://x');
+function handle(req, res) {
+  let url, rel;
+  try {
+    url = new URL(req.url, 'http://x');
+    rel = decodeURIComponent(url.pathname);
+  } catch {
+    return send(res, 400, 'text/plain', 'Bad request'); // malformed address, such as /%
+  }
+  if (rel.includes('\0')) return send(res, 400, 'text/plain', 'Bad request');
   if (url.pathname === '/health') return send(res, 200, 'text/plain', 'ok');
   if (url.pathname === '/config.js') {
     return send(res, 200, TYPES['.js'], `window.ADMIN_CONFIG = ${JSON.stringify({ apiUrl: API_URL })};`, { 'Cache-Control': 'no-store' });
   }
-  let rel = decodeURIComponent(url.pathname);
   if (rel === '/') rel = '/index.html';
   const file = path.normalize(path.join(PUB, rel));
   if (!file.startsWith(PUB + path.sep) && file !== PUB) return send(res, 403, 'text/plain', 'Forbidden');
@@ -45,7 +51,16 @@ const server = http.createServer((req, res) => {
     }
     send(res, 200, TYPES[path.extname(file)] || 'application/octet-stream', data, { 'Cache-Control': path.extname(file) === '.html' ? 'no-cache' : 'public, max-age=300' });
   });
+}
+
+// One bad request must never take the whole dashboard down.
+const server = http.createServer((req, res) => {
+  try { handle(req, res); } catch (e) {
+    console.error('request failed:', e);
+    if (!res.headersSent) send(res, 500, 'text/plain', 'Something went wrong'); else res.end();
+  }
 });
+server.on('clientError', (err, socket) => { if (socket.writable) socket.end('HTTP/1.1 400 Bad Request\r\n\r\n'); });
 
 if (require.main === module) {
   server.listen(PORT, () => {
