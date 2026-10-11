@@ -267,14 +267,17 @@ async function doSpin() {
     const won = r.animal || (r.animals || [])[r.index], clip = media[won] ? API.replace(/\/api$/, '') + media[won] : null;
     if (clip && window.WCBeast) window.WCBeast.preload(clip); // download while the wheel spins
     spinning = 1; document.querySelector('[data-a=spin]').disabled = true;
+    // People who asked their phone for less motion get a shorter spin with fewer turns. Both end at the same angle
+    // (a whole number of turns), so the wheel looks identical when the screen redraws afterwards.
+    const calm = matchMedia('(prefers-reduced-motion:reduce)').matches, secs = calm ? 2 : 4, turns = calm ? 1080 : 1800;
     l.style.transition = 'none'; l.style.transform = 'rotate(0deg)'; void l.offsetWidth;
-    l.style.transition = 'transform 4s cubic-bezier(.12,.7,.1,1)'; l.style.transform = `rotate(${1800 - (r.index * SG + SG / 2)}deg)`;
+    l.style.transition = `transform ${secs}s cubic-bezier(.12,.7,.1,1)`; l.style.transform = `rotate(${turns - (r.index * SG + SG / 2)}deg)`;
     setTimeout(async () => {
       const animal = r.animal || (r.animals || [])[r.index] || 'goat';
       if (window.WCBeast) await window.WCBeast.play({ animal, video: clip, prize: r.prize, name: t('an.' + animal), title: animal === 'dragon' ? t('spin.jackpot') : t('an.' + animal), hint: t('spin.tap') });
       else confetti();
       spinning = 0; pop = 1; await go(); toast(t('spin.toast', { n: r.prize }));
-    }, 4200);
+    }, secs * 1000 + 200);
   } catch (e) { toast(e.message); }
 }
 

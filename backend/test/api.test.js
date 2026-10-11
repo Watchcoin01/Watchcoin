@@ -24,7 +24,7 @@ async function call(method, path, { token, body } = {}) {
   let json; try { json = JSON.parse(text); } catch { json = text; }
   return { status: res.status, body: json };
 }
-const signup = (name, email, extra = {}) => call('POST', '/auth/signup', { body: { name, email, password: 'secret1', ...extra } });
+const signup = (name, email, extra = {}) => call('POST', '/auth/signup', { body: { name, email, password: 'secret12', ...extra } });
 // Pretend a task was started `ms` ago so tests do not have to wait for real timers.
 const backdate = (userId, taskId, ms) => db.prepare('UPDATE sessions SET started_at = started_at - ? WHERE user_id=? AND task_id=?').run(ms, userId, taskId);
 
@@ -44,7 +44,7 @@ test('signup, login, reset and protected routes', async () => {
 
   assert.equal((await signup('Ama again', 'AMA@test.com')).status, 409);
   assert.equal((await call('POST', '/auth/login', { body: { email: 'ama@test.com', password: 'wrong1' } })).status, 401);
-  assert.equal((await call('POST', '/auth/login', { body: { email: 'ama@test.com', password: 'secret1' } })).status, 200);
+  assert.equal((await call('POST', '/auth/login', { body: { email: 'ama@test.com', password: 'secret12' } })).status, 200);
   assert.equal((await call('GET', '/me')).status, 401);
 
   r = await call('POST', '/auth/reset-password', { body: { email: 'ama@test.com', recoveryCode: ama.recovery.toLowerCase(), newPassword: 'newsecret1' } });
@@ -170,9 +170,9 @@ test('admin: task validation, create, ban, adjust, settings, stats, charts, csv'
   assert.equal((await A('POST', `/admin/users/${admin.id}/ban`, { banned: true })).status, 400);
   assert.equal((await A('POST', `/admin/users/${kofi.id}/ban`, { banned: true })).status, 200);
   assert.equal((await call('GET', '/me', { token: kofi.token })).status, 401); // banning signs them out everywhere
-  assert.equal((await call('POST', '/auth/login', { body: { email: 'kofi@test.com', password: 'secret1' } })).status, 403);
+  assert.equal((await call('POST', '/auth/login', { body: { email: 'kofi@test.com', password: 'secret12' } })).status, 403);
   await A('POST', `/admin/users/${kofi.id}/ban`, { banned: false });
-  kofi.token = (await call('POST', '/auth/login', { body: { email: 'kofi@test.com', password: 'secret1' } })).body.token;
+  kofi.token = (await call('POST', '/auth/login', { body: { email: 'kofi@test.com', password: 'secret12' } })).body.token;
 
   assert.equal((await A('PUT', '/admin/settings', { paymentInfo: 'USDT TRC20: Txyz', launchAt: '2026-12-01T10:00:00.000Z' })).status, 200);
   assert.equal((await call('GET', '/premium', { token: ama.token })).body.paymentInfo, 'USDT TRC20: Txyz');

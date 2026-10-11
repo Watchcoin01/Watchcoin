@@ -7,11 +7,13 @@ const { isStaff, atLeast } = require('./roles');
 // Login tokens carry the user's token_version. Raising that number (password change, reset, ban,
 // "log out everywhere", role change) makes every older token stop working at once.
 // Staff tokens expire after a few hours; normal users stay logged in for 30 days.
+// The algorithm is pinned on both signing and checking, so a token can never choose its own (e.g. "none").
+const ALG = ['HS256'];
 const signToken = (user) => jwt.sign({ sub: user.id, v: user.token_version || 0, typ: 'access' }, cfg.jwtSecret,
-  { expiresIn: isStaff(user.role) ? `${cfg.staffSessionHours}h` : '30d' });
+  { algorithm: 'HS256', expiresIn: isStaff(user.role) ? `${cfg.staffSessionHours}h` : '30d' });
 
 // Short-lived token that proves the password was right, while the two-step code is still needed.
-const signChallenge = (user) => jwt.sign({ sub: user.id, v: user.token_version || 0, typ: 'mfa' }, cfg.jwtSecret, { expiresIn: '5m' });
+const signChallenge = (user) => jwt.sign({ sub: user.id, v: user.token_version || 0, typ: 'mfa' }, cfg.jwtSecret, { algorithm: 'HS256', expiresIn: '5m' });
 
 // Bump the version and return the fresh user row.
 function revokeTokens(userId) {
@@ -25,7 +27,7 @@ function auth(req, res, next) {
   const token = h.startsWith('Bearer ') ? h.slice(7) : null;
   if (!token) throw new HttpError(401, 'Please log in');
   let payload;
-  try { payload = jwt.verify(token, cfg.jwtSecret); }
+  try { payload = jwt.verify(token, cfg.jwtSecret, { algorithms: ALG }); }
   catch { throw new HttpError(401, 'Your session expired. Please log in again.'); }
   if (payload.typ && payload.typ !== 'access') throw new HttpError(401, 'Please log in');
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(payload.sub);
@@ -61,4 +63,4 @@ function errorHandler(err, req, res, next) { // eslint-disable-line no-unused-va
 
 const notFound = (req, res) => res.status(404).json({ error: 'Not found' });
 
-module.exports = { signToken, signChallenge, revokeTokens, auth, staffOnly, need, errorHandler, notFound };
+module.exports = { ALG, signToken, signChallenge, revokeTokens, auth, staffOnly, need, errorHandler, notFound };

@@ -56,8 +56,8 @@ async function call(method, path, { token, body, headers = {}, raw } = {}) {
   let json; try { json = JSON.parse(text); } catch { json = text; }
   return { status: res.status, body: json };
 }
-const signup = (name, email, extra = {}) => call('POST', '/auth/signup', { body: { name, email, password: 'secret1', ...extra } });
-const login = (email, password = 'secret1') => call('POST', '/auth/login', { body: { email, password } });
+const signup = (name, email, extra = {}) => call('POST', '/auth/signup', { body: { name, email, password: 'secret12', ...extra } });
+const login = (email, password = 'secret12') => call('POST', '/auth/login', { body: { email, password } });
 const step = () => Math.floor(Date.now() / totp.STEP_MS);
 const sign = (raw) => crypto.createHmac('sha512', 'sk_test_fake').update(raw).digest('hex');
 const webhook = (event) => { const raw = JSON.stringify(event); return call('POST', '/webhooks/paystack', { raw, headers: { 'x-paystack-signature': sign(raw) } }); };
@@ -90,7 +90,7 @@ test('owner can only be claimed with the setup code, once', async () => {
 
 test('password change, reset and log out everywhere sign out old logins', async () => {
   const other = (await login('ama@test.com')).body.token;
-  let r = await call('POST', '/me/password', { token: ama.token, body: { currentPassword: 'secret1', newPassword: 'secret2' } });
+  let r = await call('POST', '/me/password', { token: ama.token, body: { currentPassword: 'secret12', newPassword: 'secret23' } });
   assert.equal(r.status, 200);
   assert.equal((await call('GET', '/me', { token: other })).status, 401);
   assert.equal((await call('GET', '/me', { token: ama.token })).status, 401);
@@ -105,12 +105,12 @@ test('password change, reset and log out everywhere sign out old logins', async 
   assert.equal(r.status, 200);
   assert.equal((await call('GET', '/me', { token: rec.token })).status, 401);
   assert.equal((await call('GET', '/me', { token: r.body.token })).status, 200);
-  ama.token = (await login('ama@test.com', 'secret2')).body.token;
+  ama.token = (await login('ama@test.com', 'secret23')).body.token;
 });
 
 test('two-step login: setup, login, replay, backup codes and lockout', async () => {
   assert.equal((await call('POST', '/me/2fa/setup', { token: owner.token, body: { password: 'nope' } })).status, 401);
-  let r = await call('POST', '/me/2fa/setup', { token: owner.token, body: { password: 'secret1' } });
+  let r = await call('POST', '/me/2fa/setup', { token: owner.token, body: { password: 'secret12' } });
   assert.equal(r.status, 200);
   assert.match(r.body.qr, /^data:image\/png;base64,/);
   assert.match(r.body.otpauthUrl, /^otpauth:\/\/totp\/Watchcoin/);
@@ -189,7 +189,7 @@ test('roles: support reads, admin manages, owner controls money and staff', asyn
   assert.equal((await admin('POST', `/admin/users/${owner.id}/logout`)).status, 403); // can't sign out a higher role
   assert.equal((await admin('POST', `/admin/users/${ama.id}/logout`)).status, 200);
   assert.equal((await call('GET', '/me', { token: ama.token })).status, 401);
-  ama.token = (await login('ama@test.com', 'secret2')).body.token;
+  ama.token = (await login('ama@test.com', 'secret23')).body.token;
 
   assert.equal((await O('POST', `/admin/users/${kofi.id}/ban`, { banned: true })).status, 400); // staff can't be banned
   assert.equal((await O('POST', `/admin/users/${owner.id}/role`, { role: 'user' })).status, 400);
@@ -201,7 +201,7 @@ test('roles: support reads, admin manages, owner controls money and staff', asyn
   const t = (await login('efua@test.com', 'newpass1')).body.token;
   await O('POST', `/admin/users/${db.prepare("SELECT id FROM users WHERE email='efua@test.com'").get().id}/ban`, { banned: true });
   assert.equal((await call('GET', '/me', { token: t })).status, 401);
-  assert.equal((await call('DELETE', '/me', { token: kofi.token, body: { password: 'secret1' } })).status, 403); // staff can't self-delete
+  assert.equal((await call('DELETE', '/me', { token: kofi.token, body: { password: 'secret12' } })).status, 403); // staff can't self-delete
 });
 
 test('the hourly limit is also checked when a task is finished', async () => {
@@ -308,7 +308,7 @@ test('sign-up saves country and language; translations are complete', async () =
 test('wheel animal videos: upload, stream, replace, remove, roles', async () => {
   const fakeMp4 = (n) => Buffer.concat([Buffer.from([0, 0, 0, 0x18]), Buffer.from('ftypisom'), Buffer.alloc(n, 7)]);
   const put = (tok, animal, body, type = 'video/mp4') => fetch(`${base}/admin/wheel/${animal}/video`, { method: 'PUT', headers: { authorization: `Bearer ${tok}`, 'content-type': type }, body });
-  const user = (await login('ama@test.com', 'secret2')).body.token;
+  const user = (await login('ama@test.com', 'secret23')).body.token;
   assert.equal((await put(user, 'dragon', fakeMp4(100))).status, 403);
   assert.equal((await put(owner.token, 'unicorn', fakeMp4(100))).status, 400);
   assert.equal((await put(owner.token, 'dragon', Buffer.from('not a video at all'))).status, 400);

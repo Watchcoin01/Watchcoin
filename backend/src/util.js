@@ -25,10 +25,10 @@ function code(n) {
   return s;
 }
 
-// Quotes a CSV cell and defuses spreadsheet formulas (cells starting with = + - @).
+// Quotes a CSV cell and defuses spreadsheet formulas (cells starting with = + - @ or a tab).
 const csvCell = (v) => {
   let s = String(v ?? '');
-  if (/^[=+\-@]/.test(s)) s = `'${s}`;
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
   return `"${s.replace(/"/g, '""')}"`;
 };
 

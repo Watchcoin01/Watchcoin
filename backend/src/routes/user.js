@@ -30,7 +30,7 @@ router.patch('/me', (req, res) => {
 });
 
 router.post('/me/password', async (req, res) => {
-  const b = parse(z.object({ currentPassword: z.string().min(1).max(100), newPassword: z.string().min(6).max(100) }), req.body);
+  const b = parse(z.object({ currentPassword: z.string().min(1).max(100), newPassword: z.string().min(8).max(72) }), req.body);
   if (!(await bcrypt.compare(b.currentPassword, req.user.pass_hash))) throw new HttpError(401, 'Current password is wrong');
   if (isStaff(req.user.role) && b.newPassword.length < 10) throw new HttpError(400, 'Staff passwords need at least 10 characters');
   db.prepare('UPDATE users SET pass_hash=? WHERE id=?').run(await bcrypt.hash(b.newPassword, 10), req.user.id);

@@ -67,7 +67,7 @@ dialog::backdrop{background:rgba(10,15,30,.6)}
 .toast.on{transform:translate(-50%,0)}
 .empty{text-align:center;color:var(--mute);padding:24px}
 @media (max-width:480px){.cover{width:88px}.hero{padding:18px;gap:14px}.hero .coin{width:60px;height:60px;font-size:28px}.task{flex-wrap:wrap}.task .act{width:100%}.task .act .btn{width:100%}}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion:reduce){*:not(#wl){animation:none!important;transition:none!important}}
 input:not([type=file]):not([type=checkbox]),select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
 [hidden]{display:none!important}
 nav button{font-size:14px;padding:10px 4px}
@@ -372,7 +372,7 @@ dialog .opt{width:100%;justify-content:flex-start;text-align:left;margin-bottom:
  .hh{padding-right:62px}
  .stats{gap:8px}.stats .card{padding:12px}
 }
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){*:not(#wl){animation:none!important;transition:none!important}}
 
 
 /* WATCHCOIN — GOLD + BLUE + WHITE PALETTE */
@@ -460,6 +460,9 @@ dialog .opt{background:#F4F8FC;color:#174F91;border-color:#D3E1EF}
 #wl span.jp b{color:#FFE08A}
 @keyframes jpglow{50%{filter:drop-shadow(0 0 8px #FFB300) drop-shadow(0 0 2px #fff)}}
 @media (prefers-reduced-motion:reduce){#wl span.jp i{animation:none}}
+/* The prize wheel is exempt from the "reduce motion" rule above: many phones have animations switched off (battery saver,
+   "remove animations"), and without this the wheel would jump straight to the prize instead of spinning. People who
+   asked for less motion get a shorter, gentler spin (see doSpin in app.js), not a frozen wheel. */
 </style>
 </head>
 <body>

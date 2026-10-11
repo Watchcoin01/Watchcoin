@@ -30,7 +30,7 @@ const taskBody = z.object({
   premium: z.boolean().default(false),
   doubleHours: z.number().min(0).max(720).default(0),
   budget: z.number().int().min(0).default(0),
-  cover: z.string().max(200000).refine((s) => s === '' || /^data:image\//.test(s), 'must be an image data URL').default(''),
+  cover: z.string().max(200000).refine((s) => s === '' || /^data:image\/(png|jpeg|webp|gif);base64,/.test(s), 'must be a PNG, JPEG, WebP or GIF image').default(''),
   active: z.boolean().default(true),
   position: z.number().int().min(0).optional(),
 });

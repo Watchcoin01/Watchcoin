@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.4.2
+
+- **The prize wheel now spins on phones.** Many phones have animations switched off ("Reduce motion" on iPhone, "Remove
+  animations" or battery saver on Android), and a rule in the page turned off every animation for them, so the wheel jumped
+  straight to the prize. The wheel is now exempt from that rule. People who asked for less motion get a shorter, gentler
+  spin (2 seconds, 3 turns) instead of a frozen wheel; everyone else still gets the full 4-second spin. Tests added.
+
+## 1.4.1 (security update)
+
+- **Admin dashboard no longer crashes on a bad address.** Opening a malformed address such as `/%` stopped the whole admin
+  server, and Railway gives up restarting after 5 crashes, so anyone could take the dashboard offline. Bad addresses now get
+  a normal 400 reply, and one failing request can never stop the server. (`admin/server.js`, with tests.)
+- **Forgetting `NODE_ENV` is no longer dangerous.** Without it the server used a publicly known development secret, which
+  would let anyone forge a login for any account, including the owner. Running on Railway now counts as production, so the
+  server refuses to start without a real `JWT_SECRET`. In production the secret must be at least 32 characters
+  (`openssl rand -hex 32`); `DATA_KEY`, if set, must be too.
+- **Wrong guesses are now limited per account, not only per network.** 10 wrong passwords lock that account's login for
+  15 minutes; 5 wrong recovery codes lock password reset for an hour. A correct login clears the count. Unknown emails are
+  treated the same, so the limit reveals nothing. (`src/attempts.js`)
+- **Login tokens are pinned to HS256**, so a token can never pick its own signing method.
+- **Passwords must be 8 to 72 characters** (was 6 to 100; bcrypt ignores everything after 72). Staff still need 10.
+  Existing accounts with shorter passwords can still sign in; the rule applies to new and changed passwords.
+- **Task cover images** must be PNG, JPEG, WebP or GIF. SVG is refused. The dashboard already converts covers to JPEG.
+- **CSV export** also defuses cells that start with a tab or carriage return.
+
 ## 1.4.0
 
 - **Real video clips for the wheel animals.** The dashboard has a new **Wheel animals** page (admin role) where you upload a
