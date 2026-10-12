@@ -1,0 +1,9 @@
+{
+  "name": "watchcoin-admin",
+  "version": "1.0.0",
+  "description": "Admin dashboard for Watchcoin. A separate static app that talks to the Watchcoin API.",
+  "private": true,
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" },
+  "license": "UNLICENSED"
+}
