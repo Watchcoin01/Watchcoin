@@ -12176,6 +12176,11 @@ function shopDelivery(cfg, subtotal) {
   else label = "Delivery " + formatGHS(fee);
   return { fee: free ? 0 : fee, label };
 }
+function shopStoreLink() { return API_BASE + "/shop/share"; }
+function ShopCopyStoreLink() {
+  const { toast } = useToast();
+  return h("button", { type: "button", className: "btn btn-ghost btn-sm", onClick: async () => { const ok = await copyText(shopStoreLink()); toast({ type: ok ? "success" : "error", title: ok ? "Shop link copied." : "Couldn't copy the link." }); } }, h(Icon, { name: "copy", size: 13 }), " Copy shop link");
+}
 function shopProductLink(slug) {
   // Server-rendered share URL: shows a rich preview in WhatsApp etc., then opens the product.
   return API_BASE + "/shop/share/" + encodeURIComponent(slug);
@@ -12245,7 +12250,8 @@ function ShopShell({ children, activeCategory, activeKey, initialQuery }) {
         h(Link, { to: "/shop/browse", style: chip(activeKey === "all") }, "All products"),
         cats.filter(c => !c.comingSoon).map(c => h(Link, { key: c.id, to: "/shop/browse?category=" + c.slug, style: chip(activeCategory === c.slug) }, c.name)),
         h(Link, { to: "/shop/browse?sale=1", style: chip(activeKey === "sale") }, "On sale"),
-        h(Link, { to: "/track-order", style: chip(activeKey === "track") }, "Track an order"))),
+        h(Link, { to: "/track-order", style: chip(activeKey === "track") }, "Track an order"),
+        h("span", { style: { marginLeft: "auto" } }, h(ShopCopyStoreLink, null)))),
     children);
 }
 function ShopSection({ title, linkTo, linkLabel, children }) {
