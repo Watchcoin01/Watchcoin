@@ -14,15 +14,20 @@ headers.
 | Overview | Totals, charts for 7, 14, or 30 days, and shortcuts to anything that needs attention |
 | Economics | Premium revenue against tokens issued, and where the tokens came from |
 | Task performance | For every task: starts, completion rate, wrong-answer rate, average time, and tokens paid |
-| Tasks | Add, edit, hide, and reorder tasks. Set rewards, questions, premium-only, double rewards, and budgets |
+| Tasks | Add, edit, hide, and reorder tasks, or **bulk add** from a pasted list. Set rewards, questions, premium-only, double rewards, budgets, and the dates each task appears on |
+| Schedule | The next six weeks at a glance. Days with too few tasks are red. Click a day to see, add, remove, or copy its tasks |
 | Users | Search and filter. Open any user for their full token history, task activity, referrals, payments, and support requests |
 | Fraud checks | Accounts that signed up from the same network, accounts answering too fast, and people inviting from their own network |
-| Upgrades | Approve or reject crypto (USDT) payments after you confirm the money arrived |
+| Upgrades | Approve payments that need a human check, and see which plans are about to end |
 | Payments | Every Paystack payment, with anything that needs review highlighted |
+| USDT payments | Every USDT order on the TRON network, with a link to each transaction on Tronscan |
 | Support | Read and resolve user problem reports |
-| Announcements | Send a notification to everyone, premium members, or free users |
+| Announcements | Send a notification to everyone, premium members, or free users, and optionally buzz their phones |
 | Audit log | Every change made from the dashboard, with who did it and when |
-| Settings | Paystack connection and exchange rate, crypto payment details, launch date, token price, and a users CSV download |
+| Team | Add or remove support people, and reset a person's two-step sign-in |
+| System | Backups: last backup, the other-place copy, encryption, alerts, and a Back up now button |
+| Security | Your own two-step sign-in and recovery codes |
+| Settings | Paystack connection and exchange rate, your USDT receiving address, launch date, token price, and a users CSV download |
 
 ## Run it
 
@@ -58,6 +63,13 @@ Use the exact address with no trailing slash. To allow more than one address, se
 
 You can also put it on any static host, but then you lose the security headers and the `API_URL` setting that
 `server.js` provides.
+
+## Two-step sign-in and roles
+
+Everyone on the team signs in with their password and a 6-digit code from an authenticator app (on by default when the backend runs
+in production). The first sign-in walks you through it and gives you 10 recovery codes. **Support** people see a read-only view of
+users, payments, tickets, the schedule and tasks, and can resolve tickets. They cannot move money or change settings. Admins add
+them on the Team page. The backend enforces all of this, so hiding a button is never the only protection.
 
 ## Security notes
 

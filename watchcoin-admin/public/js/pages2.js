@@ -76,6 +76,62 @@
     },
   };
 
+  /* ================= USDT payments (TRON) ================= */
+  const USDTST = { pending: ['gold', 'Waiting'], paid: ['ok', 'Paid'], review: ['bad', 'In review'], expired: ['', 'Expired'] };
+  pages.usdt = {
+    title: 'USDT payments',
+    async render(c) {
+      const S = state.usdt || (state.usdt = { s: 'all' });
+      const load = async () => {
+        const r = await api('GET', `/admin/crypto-orders?status=${S.s}`);
+        $('#ut2').innerHTML = `<div class="grid g-tiles"><div class="card tile"><div class="k">Received</div><div class="v">${(r.paid.micro / 1e6).toFixed(2)} USDT</div><div class="small muted">${r.paid.n} payment${r.paid.n === 1 ? '' : 's'}</div></div>
+          <a href="#/upgrades" class="card tile ${r.inReview ? 'alert' : ''}"><div class="k">In review</div><div class="v">${r.inReview}</div><div class="small muted">${r.inReview ? 'Approve on the Upgrades page' : 'All clear'}</div></a>
+          <a href="#/settings" class="card tile ${r.enabled ? '' : 'alert'}"><div class="k">Automatic checking</div><div class="v">${r.enabled ? 'On' : 'Off'}</div><div class="small muted">${r.enabled ? 'Watching your address' : 'Add your address in Settings'}</div></a></div>
+          <div class="card" style="margin-top:16px"><div class="tablewrap">${r.orders.length ? `<table><thead><tr><th>When</th><th>User</th><th>Plan</th><th class="num">Exact amount</th><th>Status</th><th>Transaction</th></tr></thead><tbody>${r.orders.map((o) => { const late = o.status === 'pending' && Date.now() > o.expiresAt; return `<tr><td class="small nowrap">${esc(when(o.createdAt))}</td><td>${userLink(o.userId, o.name)}<div class="small muted">${esc(o.email)}</div></td><td>${esc(o.planName)}</td><td class="num"><code>${esc(o.amount)}</code></td><td><span class="chip ${late ? '' : (USDTST[o.status] || [''])[0]}">${late ? 'Window closed' : esc((USDTST[o.status] || [0, o.status])[1])}</span></td><td>${o.txid ? `<a href="https://tronscan.org/#/transaction/${esc(o.txid)}" target="_blank" rel="noopener noreferrer"><code>${esc(o.txid.slice(0, 10))}…</code></a>` : '<span class="muted">-</span>'}</td></tr>`; }).join('')}</tbody></table>` : '<div class="empty">No USDT payments yet.</div>'}</div></div>
+          <p class="muted small">Each order has its own exact amount. When a confirmed USDT transfer of exactly that amount reaches your address, the plan starts on its own. Orders stay matchable for 24 hours after the payment window closes. If someone sent a different amount, they can send the transaction hash, and it appears on the Upgrades page for you to approve. Click a transaction to see it on Tronscan.</p>`;
+      };
+      c.innerHTML = head('USDT payments', tabs([['all', 'All'], ['pending', 'Waiting'], ['paid', 'Paid'], ['review', 'In review'], ['expired', 'Expired']], S.s, 's')) + '<div id="ut2"></div>';
+      c.onclick = guard(async (e) => { const b = e.target.closest('[data-s]'); if (b) { S.s = b.dataset.s; c.querySelectorAll('[data-s]').forEach((x) => x.setAttribute('aria-pressed', x === b)); await load(); } });
+      await load();
+    },
+  };
+
+  /* ================= Schedule ================= */
+  pages.schedule = {
+    title: 'Schedule',
+    async render(c) {
+      const S = state.sched || (state.sched = { sel: null });
+      const r = await api('GET', '/admin/schedule?days=42'), today = r.today, min = r.minFree;
+      const thin = r.days.slice(0, 14).filter((d) => d.freeCount < min).length, lead = (new Date(today + 'T00:00:00Z').getUTCDay() + 6) % 7;
+      const MS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const long = (d) => new Date(d + 'T12:00:00Z').toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
+      const cell = (d) => { const dt = new Date(d.date + 'T00:00:00Z'), n = dt.getUTCDate(); return `<button class="sd ${d.freeCount < min ? 'low' : ''} ${S.sel === d.date ? 'on' : ''} ${d.date === today ? 'tdy' : ''}" data-day="${d.date}"><b>${n}${n === 1 || d.date === today ? ` <small>${MS[dt.getUTCMonth()]}</small>` : ''}</b><span>${d.freeCount} free</span>${d.premiumCount ? `<span class="muted">${d.premiumCount} premium</span>` : ''}</button>`; };
+      c.innerHTML = head('Schedule') + `<p class="muted" style="margin-top:-8px">Each day, people see only the tasks set for that day, plus any set to "Every day". Red days have fewer than ${min} tasks for free users. Click a day to see or change it.</p>
+        ${thin ? `<div class="card note-card"><strong>${thin} of the next 14 days ${thin === 1 ? 'has' : 'have'} fewer than ${min} tasks for free users.</strong> Click a red day, then add tasks for it.</div>` : `<div class="card"><strong>The next 14 days look full.</strong> Every day has at least ${min} tasks for free users.</div>`}
+        <div class="card"><div class="sg-head">${['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((w) => `<span>${w}</span>`).join('')}</div><div class="sg">${'<span></span>'.repeat(lead)}${r.days.map(cell).join('')}</div></div><div id="sdet"></div>`;
+      const detail = () => {
+        const d = r.days.find((x) => x.date === S.sel), box = $('#sdet'); if (!d) { box.innerHTML = ''; return; }
+        box.innerHTML = `<div class="card"><div class="tools" style="justify-content:space-between"><h3>${esc(long(d.date))}</h3><span class="tools">${d.dated.length ? `<button class="btn ghost" data-copy="${d.date}">Copy this day…</button>` : ''}<button class="btn" data-add="${d.date}">Add a task for this day</button></span></div>
+          <p class="muted" style="margin:6px 0">${d.freeCount} task${d.freeCount === 1 ? '' : 's'} for free users${d.freeCount < min ? ` <span class="chip bad">needs ${min - d.freeCount} more</span>` : ''} · ${d.premiumCount} premium-only${r.evergreen.length ? ` · includes ${r.evergreen.length} set to every day` : ''}</p>
+          ${d.dated.length ? `<table><tbody>${d.dated.map((t) => `<tr><td><strong>${esc(t.title)}</strong> <span class="chip">${esc(t.type)}</span> ${t.premium ? '<span class="chip gold">Premium</span>' : ''}</td><td class="num">${fmt(t.tokens)} WTC</td><td class="right"><button class="btn ghost sm" data-rm="${t.id}" data-day="${d.date}">Remove from this day</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty">Nothing is set for just this day.</div>'}</div>`;
+        c.querySelectorAll('.sd').forEach((b) => b.classList.toggle('on', b.dataset.day === S.sel));
+      };
+      c.onclick = guard(async (e) => {
+        const b = e.target.closest('button'); if (!b) return;
+        if (b.classList.contains('sd')) { S.sel = b.dataset.day; return detail(); }
+        if (b.dataset.copy) return window.WC.copyDay(b.dataset.copy, today, () => pages.schedule.render(c));
+        if (b.dataset.add) return window.WC.taskForm(null, () => pages.schedule.render(c), { today, preset: { mode: 'dates', dates: [b.dataset.add] } });
+        if (b.dataset.rm) {
+          const all = (await api('GET', '/admin/tasks')).tasks, t = all.find((x) => x.id === +b.dataset.rm), left = t.schedule.dates.filter((x) => x !== b.dataset.day);
+          if (!left.length) { if (!(await confirmBox('This is its only day', `"${t.title}" is only set for this day. Hide the task instead?`, 'Hide task', true))) return; await api('DELETE', `/admin/tasks/${t.id}`); }
+          else await api('PATCH', `/admin/tasks/${t.id}`, { schedule: { mode: 'dates', dates: left } });
+          toast('Updated'); pages.schedule.render(c);
+        }
+      });
+      detail();
+    },
+  };
+
   /* ================= Audit log ================= */
   pages.audit = {
     title: 'Audit log',
@@ -100,7 +156,7 @@
       c.innerHTML = head('Announcements') + `<div class="card"><h3>New announcement</h3><p class="muted">It appears in each person's notifications inside the app. Keep it short and factual.</p>
         <label for="bM">Message</label><textarea id="bM" rows="3" maxlength="300"></textarea><div class="small muted right" id="bC">0 / 300</div>
         <label for="bA">Send to</label><select id="bA"><option value="all">Everyone (${r.counts.all})</option><option value="premium">Premium members (${r.counts.premium})</option><option value="free">Free users (${r.counts.free})</option></select>
-        <div class="mfoot"><button class="btn" data-act="send">Send announcement</button></div></div>
+        <label class="check"><input type="checkbox" id="bP"> Also send it to people's phones as a notification</label><div class="mfoot"><button class="btn" data-act="send">Send announcement</button></div></div>
         <div class="card"><h3 style="margin-bottom:6px">Sent so far</h3>${r.history.length ? `<table><thead><tr><th>When</th><th>Message</th><th>To</th><th class="num">Reached</th></tr></thead><tbody>${r.history.map((b) => `<tr><td class="small nowrap">${esc(when(b.createdAt))}<div class="muted">${esc(b.adminName)}</div></td><td>${esc(b.message)}</td><td>${AUD[b.audience]}</td><td class="num">${fmt(b.recipients)}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">No announcements sent yet.</div>'}</div>`;
       $('#bM').oninput = (e) => { $('#bC').textContent = `${e.target.value.length} / 300`; };
       c.onclick = guard(async (e) => {
@@ -108,7 +164,7 @@
         const message = $('#bM').value.trim(), audience = $('#bA').value;
         if (message.length < 3) throw new Error('Write a message first');
         if (await confirmBox('Send this announcement?', `It goes to ${r.counts[audience]} user${r.counts[audience] === 1 ? '' : 's'} and cannot be unsent.`, 'Send')) {
-          const s = await api('POST', '/admin/broadcasts', { message, audience }); toast(`Sent to ${s.recipients} users`); pages.announce.render(c);
+          const s = await api('POST', '/admin/broadcasts', { message, audience, push: $('#bP').checked }); toast(`Sent to ${s.recipients} users`); pages.announce.render(c);
         }
       });
     },

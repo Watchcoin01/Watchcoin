@@ -163,3 +163,35 @@ a.btn{color:#fff;text-decoration:none;display:inline-block}
 .th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .th.big{width:160px;height:90px;border-radius:10px}
 .vprev{display:flex;gap:12px;align-items:center;margin-top:8px;flex-wrap:wrap}
+
+/* ---- task schedule ---- */
+.cal{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px;background:var(--bg)}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal-grid i{font-style:normal;font-size:11px;color:var(--mute);font-weight:700}
+.cd{aspect-ratio:1;border:0;border-radius:8px;background:var(--card);color:var(--ink);font-weight:600;cursor:pointer}
+.cd.sel{background:var(--acc);color:var(--accink)}
+.cd.today{box-shadow:inset 0 0 0 2px var(--gold)}
+.cd:disabled{opacity:.3;cursor:default}
+.cal-tools{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.sg-head,.sg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.sg-head{text-align:center;font-size:12px;font-weight:700;color:var(--mute);margin-bottom:6px}
+.sd{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 7px;text-align:left;cursor:pointer;min-height:70px;display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--ink)}
+.sd b{font-size:15px}.sd small{font-weight:500;color:var(--mute)}
+.sd.low{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 8%,var(--card))}
+.sd.tdy{box-shadow:inset 0 0 0 2px var(--gold)}
+.sd.on{outline:3px solid var(--acc)}
+@media (max-width:640px){.sd{min-height:58px;padding:6px 5px;font-size:11px}.sd b{font-size:13px}}
+.cvr{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+
+/* ---- support role: read-only view (the server enforces this too) ---- */
+.ro [data-act=new],.ro [data-act=bulk],.ro [data-act=edit],.ro [data-act=hide],.ro [data-act=show],.ro [data-act=up],.ro [data-act=down],.ro [data-act=adj],.ro [data-act=ban],.ro [data-act=ok],.ro [data-act=no],.ro [data-add],.ro [data-rm],.ro [data-copy]{display:none!important}
+.codes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+.codes code{display:block;text-align:center;padding:9px;font-size:15px;letter-spacing:.04em}
+.qrbox{width:180px;height:180px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:6px;margin:10px auto}
+.qrbox svg{width:100%;height:100%;display:block}
+.two-col{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+@media (max-width:520px){.two-col{grid-template-columns:1fr}}
+textarea.mono{font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre}
+.bprev{max-height:190px;overflow:auto;border:1px solid var(--line);border-radius:10px;margin-top:8px}
+.bprev table td,.bprev table th{padding:6px 10px;font-size:13px}

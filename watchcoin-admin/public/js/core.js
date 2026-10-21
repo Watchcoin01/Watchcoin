@@ -25,7 +25,7 @@
     if (raw) return r;
     let j = {}; try { j = await r.json(); } catch (e) { /* no body */ }
     if (r.status === 401 && token && !path.startsWith('/auth/')) { setToken(null); authLost(); throw new Error(j.error || 'Session expired'); }
-    if (!r.ok) throw Object.assign(new Error(j.error || `Request failed (${r.status})`), { status: r.status });
+    if (!r.ok) throw Object.assign(new Error(j.error || `Request failed (${r.status})`), { status: r.status, data: j });
     return j;
   }
 
@@ -81,8 +81,17 @@
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
+  // Copying that works on every browser, and says so honestly if it cannot.
+  async function copyText(t) {
+    try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(t); return true; } } catch (e) { /* use the fallback */ }
+    try {
+      const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+      (document.querySelector('dialog[open]') || document.body).appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return !!ok;
+    } catch (e) { return false; }
+  }
+
   window.WC = {
-    cfg, $, esc, fmt, usdt, when, api, toast, modal, closeModal, confirmBox, bars, download, state: {}, pages: {},
+    cfg, $, esc, fmt, usdt, when, api, toast, modal, closeModal, confirmBox, bars, download, copyText, role: () => null, state: {}, pages: {},
     setToken, hasToken: () => !!token, onAuthLost: (f) => { authLost = f; },
   };
 })();
